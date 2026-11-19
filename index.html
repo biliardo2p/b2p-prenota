@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="Prenota 2P">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@600;700&display=swap">
-<link rel="stylesheet" href="css/prenota.css?v=2026111901">
+<link rel="stylesheet" href="css/prenota.css?v=2026111902">
 </head>
 <body>
 <header class="testata">
@@ -39,6 +39,11 @@
     <button class="btn primario grande" type="submit">Entra</button>
     <button class="link" type="button" id="pw-dimenticata">Password dimenticata?</button>
   </form>
+  <div class="pannello">
+    <p>Non sei registrato, o usi il tablet della sala?</p>
+    <button class="btn grande" type="button" id="entra-ospite">Entra come ospite</button>
+    <p class="meta">Da ospite prenoti scrivendo i nomi dei giocatori; la prenotazione viene confermata dal direttivo.</p>
+  </div>
   <form id="form-registrati" class="pannello" hidden>
     <p>Registrati con la tua email. Il direttivo controlla che tu sia socio e abilita l'utenza: poi potrai prenotare.</p>
     <label>Nome e cognome <input name="nome" autocomplete="name" maxlength="60" required></label>
@@ -82,23 +87,29 @@
 <!-- ============ app ============ -->
 <div id="app" hidden>
   <nav>
-    <button class="attivo" data-tab="tab-oggi">Oggi</button>
-    <button data-tab="tab-bacheca">Avversari <span id="conta-bacheca" class="conta" hidden></span></button>
-    <button data-tab="tab-partite">Partite <span id="conta-partite" class="conta" hidden></span></button>
+    <button class="attivo" data-tab="tab-oggi">Prenota</button>
+    <button data-tab="tab-bacheca" data-solo-soci>Avversari <span id="conta-bacheca" class="conta" hidden></span></button>
+    <button data-tab="tab-partite" data-solo-soci>Partite <span id="conta-partite" class="conta" hidden></span></button>
     <button data-tab="tab-profilo">Profilo</button>
-    <button data-tab="tab-soci" id="tab-soci-btn" hidden>Soci <span id="conta-soci" class="conta" hidden></span></button>
+    <button data-tab="tab-soci" id="tab-soci-btn" data-solo-soci hidden>Admin <span id="conta-soci" class="conta" hidden></span></button>
   </nav>
 
   <main class="wrap">
     <section id="tab-oggi" class="tab">
-      <p id="avviso" class="avviso"></p>
+      <div class="scegli-giorno">
+        <button data-giorno="" id="giorno-oggi">Oggi</button>
+        <button data-giorno="" id="giorno-domani">Domani</button>
+      </div>
+      <p class="avviso">Tocca uno spazio <b>verde</b>: si prenotano 2 ore, poi puoi allungare, accorciare o spostare.</p>
+      <p class="meta">Le partite che iniziano prima delle 13 si prenotano dalle 21 della sera prima; quelle dalle 13 alle 22, dalle 9 del giorno stesso.</p>
       <p id="avviso-padrini" class="avviso padrini" hidden></p>
       <div class="legenda">
         <span class="lg libera">Libero</span>
+        <span class="lg presto">Non ancora prenotabile</span>
         <span class="lg aperta">Cerca avversario</span>
         <span class="lg confermata">Prenotato</span>
+        <span class="lg da_confermare">Da confermare</span>
         <span class="lg mia">La tua</span>
-        <span class="lg no">Meno di 2 ore libere</span>
       </div>
       <div id="griglia"></div>
     </section>
@@ -112,7 +123,7 @@
       <h2>Le tue partite</h2>
       <ul id="partite" class="schede"></ul>
       <h2>Programma una partita</h2>
-      <p class="meta">Per i prossimi giorni. Non prenota il biliardo: il giorno stesso, dalle 9, lo prenoti con un tocco.</p>
+      <p class="meta">Per i prossimi giorni. Non prenota il biliardo: quando si aprono le prenotazioni (dalle 21 della sera prima per il mattino, dalle 9 per il pomeriggio) lo prenoti con un tocco.</p>
       <form id="form-partita" class="pannello">
         <label>Giorno <input name="giorno" type="date" required></label>
         <label>Ora <select name="ora"></select></label>
@@ -123,6 +134,11 @@
     </section>
 
     <section id="tab-profilo" class="tab" hidden>
+      <div id="profilo-ospite" class="pannello" hidden>
+        <h2>Sei entrato come ospite</h2>
+        <p>Le tue prenotazioni restano su questo dispositivo e vengono confermate dal direttivo.
+          Se sei socio, esci e registrati: potrai cercare avversari e programmare partite.</p>
+      </div>
       <form id="form-profilo" class="pannello">
         <h2>Il tuo profilo</h2>
         <label>Nome <input name="nome" disabled></label>
@@ -138,7 +154,9 @@
     </section>
 
     <section id="tab-soci" class="tab" hidden>
-      <h2>Richieste da approvare</h2>
+      <h2>Prenotazioni da confermare</h2>
+      <ul id="da-confermare" class="schede"></ul>
+      <h2>Nuovi soci da approvare</h2>
       <ul id="soci-attesa" class="schede"></ul>
       <h2>Soci</h2>
       <ul id="soci-elenco" class="schede"></ul>
@@ -146,24 +164,48 @@
   </main>
 </div>
 
+<!-- barra della selezione: sposta, cambia durata, avanti -->
+<div id="barra-sel" hidden>
+  <div class="sel-info"><b id="sel-titolo"></b> · <span id="sel-durata"></span></div>
+  <div id="sel-errore" class="sel-errore"></div>
+  <div class="sel-pulsanti">
+    <span class="sel-gruppo">Orario <button class="btn piccolo" data-sel="prima" aria-label="Mezz'ora prima">▲ prima</button><button class="btn piccolo" data-sel="dopo" aria-label="Mezz'ora dopo">▼ dopo</button></span>
+    <span class="sel-gruppo">Durata <button class="btn piccolo" data-sel="meno" aria-label="Mezz'ora in meno">−</button><button class="btn piccolo" data-sel="piu" aria-label="Mezz'ora in più">+</button></span>
+  </div>
+  <div class="riga">
+    <button class="btn primario" data-sel="avanti" id="sel-avanti">Avanti</button>
+    <button class="btn" data-sel="annulla">Annulla</button>
+  </div>
+</div>
+
 <!-- nuova prenotazione -->
 <dialog id="dlg-prenota">
   <form id="form-prenota">
     <h3 id="prenota-titolo"></h3>
-    <fieldset>
-      <legend>Con chi giochi?</legend>
-      <label class="spunta"><input type="radio" name="modo" value="socio" checked> Con un socio</label>
-      <label class="spunta"><input type="radio" name="modo" value="ospite"> Con un ospite</label>
-      <label class="spunta"><input type="radio" name="modo" value="solo"> Da solo</label>
-      <label class="spunta"><input type="radio" name="modo" value="cerca"> <b>Cerco un avversario</b></label>
-    </fieldset>
-    <label data-modo="socio">Socio <select name="socio"></select></label>
-    <label data-modo="ospite" hidden>Nome dell'ospite <input name="ospite" maxlength="60"></label>
-    <div data-modo="cerca" hidden class="colonna">
-      <label>Specialità <select name="specialita"></select></label>
-      <label>Il tuo livello <select name="livello"></select></label>
-      <label>Nota (facoltativa) <input name="nota" maxlength="120" placeholder="es. sono nuovo, cerco una partita tranquilla"></label>
-      <p class="meta">Se nessuno si aggiunge, 3 ore prima dell'inizio il biliardo si libera da solo.</p>
+    <div id="prenota-soci" class="colonna">
+      <fieldset>
+        <legend>Con chi giochi?</legend>
+        <label class="spunta"><input type="radio" name="modo" value="persona" checked> Con un'altra persona</label>
+        <label class="spunta"><input type="radio" name="modo" value="solo"> Da solo</label>
+        <label class="spunta"><input type="radio" name="modo" value="cerca"> <b>Cerco un avversario</b></label>
+      </fieldset>
+      <div data-modo="persona" class="colonna">
+        <label>Nome dell'avversario <input name="avversario" list="elenco-soci" maxlength="60" autocomplete="off" placeholder="scrivi o scegli un socio"></label>
+        <datalist id="elenco-soci"></datalist>
+        <label class="spunta"><input type="checkbox" name="nonSocio"> Non è socio (ospite)</label>
+      </div>
+      <div data-modo="cerca" hidden class="colonna">
+        <label>Specialità <select name="specialita"></select></label>
+        <label>Il tuo livello <select name="livello"></select></label>
+        <label>Nota (facoltativa) <input name="nota" maxlength="120" placeholder="es. sono nuovo, cerco una partita tranquilla"></label>
+        <p class="meta">Se nessuno si aggiunge, 3 ore prima dell'inizio il biliardo si libera da solo.</p>
+      </div>
+    </div>
+    <div id="prenota-ospite" class="colonna" hidden>
+      <label>Il tuo nome e cognome <input name="nomeOspite" maxlength="60" autocomplete="off"></label>
+      <label>Nome dell'avversario <input name="avversarioOspite" maxlength="60" autocomplete="off"></label>
+      <label class="spunta"><input type="checkbox" name="solo"> Gioco da solo</label>
+      <p class="meta">La prenotazione sarà confermata dal direttivo.</p>
     </div>
     <div class="riga">
       <button class="btn primario grande" type="submit">Prenota</button>
@@ -186,14 +228,14 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/config.js?v=2026111901"></script>
-<script src="js/util.js?v=2026111901"></script>
-<script src="js/dati.js?v=2026111901"></script>
-<script src="js/griglia.js?v=2026111901"></script>
-<script src="js/prenotazione.js?v=2026111901"></script>
-<script src="js/bacheca.js?v=2026111901"></script>
-<script src="js/partite.js?v=2026111901"></script>
-<script src="js/soci.js?v=2026111901"></script>
-<script src="js/avvio.js?v=2026111901"></script>
+<script src="js/config.js?v=2026111902"></script>
+<script src="js/util.js?v=2026111902"></script>
+<script src="js/dati.js?v=2026111902"></script>
+<script src="js/griglia.js?v=2026111902"></script>
+<script src="js/prenotazione.js?v=2026111902"></script>
+<script src="js/bacheca.js?v=2026111902"></script>
+<script src="js/partite.js?v=2026111902"></script>
+<script src="js/soci.js?v=2026111902"></script>
+<script src="js/avvio.js?v=2026111902"></script>
 </body>
 </html>

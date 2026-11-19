@@ -2,6 +2,10 @@
 
 /* ================= profilo ================= */
 function disegnaProfilo(){
+  $("#profilo-ospite").hidden = !S.ospite;
+  $("#form-profilo").hidden = S.ospite;
+  $("#cambia-pw").hidden = S.ospite;
+  if(S.ospite) return;
   const f = $("#form-profilo");
   f.nome.value = S.io.nome;
   f.email.value = session.email || "";
@@ -27,8 +31,16 @@ function disegnaSoci(){
   if(!isAdmin()) return;
   const tutti = Object.entries(S.soci).map(([id, s]) => ({id, ...s})).sort((a, b) => a.nome.localeCompare(b.nome, "it"));
   const attesa = tutti.filter(s => s.stato === "attesa");
-  $("#conta-soci").textContent = attesa.length || "";
-  $("#conta-soci").hidden = !attesa.length;
+  const daConf = [S.oggi, S.domani].flatMap(d => prenDi(d).map(p => ({...p, data: d}))).filter(p => p.stato === "da_confermare")
+    .sort((a, b) => (a.data + hhmm(a.min)).localeCompare(b.data + hhmm(b.min)));
+  $("#conta-soci").textContent = (attesa.length + daConf.length) || "";
+  $("#conta-soci").hidden = !(attesa.length + daConf.length);
+  $("#da-confermare").innerHTML = daConf.length ? daConf.map(p => `
+    <li class="scheda">
+      <div class="grande"><b>${nomeGiorno(p.data) === "oggi" ? "Oggi" : "Domani"} ${fascia(p.min, durataDi(p))}</b> · Biliardo ${p.tavolo}</div>
+      <div><b>${esc(p.titolareNome)}</b> ${p.avversarioNome ? "con <b>" + esc(p.avversarioNome) + "</b>" : "da solo"}</div>
+      <button class="btn" data-pren="${p.id}" data-data="${p.data}">Apri</button>
+    </li>`).join("") : `<li class="vuoto">Nessuna prenotazione da confermare.</li>`;
   const mail = id => esc((emails[id] && emails[id].email) || "");
   $("#soci-attesa").innerHTML = attesa.length ? attesa.map(s => `
     <li class="scheda" data-id="${s.id}">
@@ -49,6 +61,8 @@ function disegnaSoci(){
 }
 
 $("#tab-soci").addEventListener("click", async e => {
+  const pr = e.target.closest("[data-pren]");
+  if(pr) return apriDettaglio(pr.dataset.data, pr.dataset.pren);
   const az = e.target.closest("[data-az]") && e.target.closest("[data-az]").dataset.az;
   if(!az) return;
   const id = e.target.closest("[data-id]").dataset.id, k = "soci/" + id + "/";

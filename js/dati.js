@@ -38,6 +38,8 @@ function apriSessione(j){
 }
 async function accedi(email, pw){ apriSessione(await chiamaAuth("signInWithPassword", {email, password: pw, returnSecureToken: true})); }
 async function registrati(email, pw){ apriSessione(await chiamaAuth("signUp", {email, password: pw, returnSecureToken: true})); }
+/* ospite: utenza anonima di Firebase, resta memorizzata sul dispositivo */
+async function entraOspite(){ apriSessione(await chiamaAuth("signUp", {returnSecureToken: true})); session.ospite = true; salvaSessione(); }
 async function inviaReset(email){ await chiamaAuth("sendOobCode", {requestType: "PASSWORD_RESET", email}); }
 function esci(){ chiudiAscolti(); session = null; salvaSessione(); location.reload(); }
 

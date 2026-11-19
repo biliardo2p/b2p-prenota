@@ -81,7 +81,7 @@ legend{font-weight:600;padding:0 4px}
 .cella.libera{background:var(--libera);cursor:pointer}
 .cella.libera:hover,.cella.libera:focus-visible{background:var(--libera-hover);outline:2px solid var(--ok)}
 .cella.no{background:rgba(255,255,255,.03)}
-.pren{border:0;border-radius:7px;padding:5px 6px;text-align:left;font:inherit;font-size:15px;line-height:1.15;overflow-wrap:anywhere;color:var(--ink);overflow:hidden;cursor:pointer;z-index:1}
+.pren{border:0;border-radius:7px;padding:4px 5px;text-align:left;font:inherit;font-size:14px;line-height:1.15;overflow-wrap:break-word;hyphens:auto;color:var(--ink);overflow:hidden;cursor:pointer;z-index:1}
 .pren .fascia{display:block;font-size:14px;color:var(--mute)}
 .pren.confermata{background:var(--pren)}
 .pren.aperta{background:var(--gold);color:#1d1600}
@@ -104,3 +104,32 @@ dialog form{display:grid;gap:12px}
 #toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;pointer-events:none;
   background:var(--ink);color:var(--bg);font-weight:600;padding:12px 16px;border-radius:10px;max-width:92vw;transition:.25s;z-index:20}
 #toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* giorno, stati in più, selezione e barra (v. 2026111902) */
+.scegli-giorno{display:flex;gap:8px;margin-bottom:10px}
+.scegli-giorno button{flex:1;font:inherit;font-size:18px;font-weight:600;padding:10px;border-radius:10px;border:1px solid var(--dim);background:none;color:var(--mute);cursor:pointer;text-transform:capitalize}
+.scegli-giorno button.attivo{background:var(--panel2);color:var(--ink);border-color:var(--home)}
+.lg.presto::before{background:repeating-linear-gradient(45deg,#1a2234 0 4px,#121a28 4px 8px)}
+.lg.da_confermare::before{background:var(--pren);border:2px dashed var(--gold)}
+.cella.presto{background:repeating-linear-gradient(45deg,#1a2234 0 6px,#121a28 6px 12px)}
+.pren.da_confermare{background:var(--pren);box-shadow:inset 0 0 0 2px var(--gold);border:0}
+.pren.da_confermare.mia{box-shadow:inset 0 0 0 3px var(--home)}
+.pren.occupato{background:var(--pren);color:var(--mute)}
+.selezione{position:relative;z-index:3;background:rgba(60,200,255,.28);border:3px solid var(--home);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;touch-action:none;cursor:grab;user-select:none}
+.selezione.trascinata{cursor:grabbing;background:rgba(60,200,255,.4)}
+.selezione.errata{border-color:var(--danger);background:rgba(255,90,95,.25)}
+.maniglia{position:absolute;left:50%;width:44px;height:16px;margin-left:-22px;background:var(--home);border-radius:8px;cursor:ns-resize;touch-action:none}
+.maniglia.su{top:-9px}
+.maniglia.giu{bottom:-9px}
+#barra-sel{position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--panel);border-top:2px solid var(--home);
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;box-shadow:0 -6px 20px rgba(0,0,0,.5)}
+.sel-info{font-size:19px}
+.sel-errore{color:var(--danger);font-weight:600;min-height:0}
+.sel-errore:empty{display:none}
+.sel-pulsanti{display:flex;flex-wrap:wrap;gap:8px 16px}
+.sel-gruppo{display:flex;align-items:center;gap:6px;font-weight:600;color:var(--mute)}
+.sel-gruppo .btn{min-width:56px}
+body.con-barra .wrap{padding-bottom:230px}
+body.con-barra #toast{bottom:240px}
+body.ospite [data-solo-soci]{display:none!important}

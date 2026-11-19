@@ -14,18 +14,23 @@ const FIREBASE = {
 };
 
 /* ================= circolo e sala =================
-   ATTENZIONE: durata (120 min), anticipo della scadenza (3 h) e apertura (9:00)
-   sono scritti anche in regole_database.json: se cambiano, vanno aggiornati in entrambi. */
+   ATTENZIONE: orari di inizio (8–22), chiusura (24), durate (30 min – 4 h), aperture (21 della sera prima / 9)
+   e anticipo della scadenza (3 h) sono scritti anche in regole_database.json: se cambiano, vanno aggiornati in entrambi. */
 const CLUB = {name: "Biliardo Seconda Passione", short: "Seconda Passione"};
 const SALA = {
-  tavoli: 4,               /* numero di biliardi (al massimo 8) */
-  apertura: "14:00",       /* primo orario di inizio possibile */
-  chiusura: "24:00",       /* la partita deve finire entro quest'ora */
-  durata: 120,             /* minuti di una prenotazione */
-  passo: 30,               /* orari di inizio ogni 30 minuti */
-  apronoAlle: "09:00",     /* le prenotazioni del giorno si aprono a quest'ora */
-  scadenzaOre: 3,          /* "Cerco avversario" scade 3 ore prima dell'inizio */
-  giorniNuovo: 60          /* badge "nuovo socio" per 60 giorni dall'approvazione */
+  tavoli: 4,                    /* numero di biliardi (al massimo 8) */
+  primoInizio: "08:00",         /* primo orario di inizio */
+  ultimoInizio: "22:00",        /* ultimo orario di inizio */
+  chiusura: "24:00",            /* la partita deve finire entro quest'ora */
+  durata: 120,                  /* durata proposta con un tocco (minuti) */
+  durataMin: 30,                /* durata minima */
+  durataMax: 240,               /* durata massima */
+  passo: 30,                    /* orari e durate a passi di 30 minuti */
+  mattinoFinoA: "13:00",        /* le partite che iniziano prima di quest'ora sono "del mattino" */
+  aperturaMattino: "21:00",     /* il mattino si prenota dalle 21 della sera prima */
+  aperturaPomeriggio: "09:00",  /* pomeriggio e sera si prenotano dalle 9 del giorno stesso */
+  scadenzaOre: 3,               /* "Cerco avversario" scade 3 ore prima dell'inizio */
+  giorniNuovo: 60               /* badge "nuovo socio" per 60 giorni dall'approvazione */
 };
 const SPECIALITA = ["Qualsiasi", "5 Birilli", "Italiana", "Goriziana"];
 const LIVELLI = ["principiante", "intermedio", "esperto"];

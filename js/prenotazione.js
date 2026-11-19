@@ -1,122 +1,189 @@
-/* Prenota 2P · prenotazione.js — Nuova prenotazione, dettaglio, "Gioco io", annullamento, scadenze */
+/* Prenota 2P · prenotazione.js — Nuova prenotazione, dettaglio, modifica, "Gioco io", annullamento, scadenze */
 
-const slotDi = (data, tavolo, min) => {
+const slotDi = (data, tavolo, min, durata) => {
   const k = [];
-  for(let m = min; m < min + SALA.durata; m += SALA.passo) k.push("slot/" + data + "/" + tavolo + "/" + hhmm(m).replace(":", ""));
+  for(let m = min; m < min + durata; m += SALA.passo) k.push("slot/" + data + "/" + tavolo + "/" + hhmm(m).replace(":", ""));
   return k;
 };
-const percorso = id => "prenotazioni/" + S.oggi + "/" + id;
-let inCorso = null;   /* prenotazione che si sta compilando */
+const percorso = (data, id) => "prenotazioni/" + data + "/" + id;
+const prenotazione = (data, id) => S.ospite ? S.mie[id] : (S.pren[data] || {})[id];
+/* orari di una prenotazione a partire da data, biliardo, inizio e durata */
+function orari(s){
+  const inizio = msRoma(s.data, s.min);
+  return {tavolo: s.tavolo, min: s.min, durata: s.durata, inizio, fine: inizio + s.durata * 60000, apertura: apreAlle(s.data, s.min)};
+}
+/* uid del socio che ha esattamente quel nome (avversario scritto a mano) */
+function uidDaNome(nome){
+  const n = nome.trim().toLowerCase();
+  const e = Object.entries(S.soci).find(([id, s]) => id !== S.uid && s.stato === "attivo" && s.nome.toLowerCase() === n);
+  return e ? e[0] : null;
+}
 
 /* ================= nuova prenotazione ================= */
-function apriPrenota(tavolo, min, preset = {}){
-  inCorso = {tavolo, min, partita: preset.partita || null};
-  const f = $("#form-prenota");
+function apriPrenota(){
+  const s = S.sel, f = $("#form-prenota");
   f.reset();
-  $("#prenota-titolo").textContent = `Biliardo ${tavolo} · ${fascia(min)}`;
-  f.socio.innerHTML = `<option value="">— scegli —</option>` + Object.entries(S.soci)
-    .filter(([id, s]) => id !== S.uid && s.stato === "attivo")
-    .sort((a, b) => a[1].nome.localeCompare(b[1].nome, "it"))
-    .map(([id, s]) => `<option value="${id}">${esc(s.nome)}</option>`).join("");
-  f.specialita.innerHTML = SPECIALITA.map(s => `<option>${esc(s)}</option>`).join("");
-  f.livello.innerHTML = LIVELLI.map(l => `<option ${l === S.io.livello ? "selected" : ""}>${l}</option>`).join("");
-  if(preset.avversario){ f.modo.value = "socio"; f.socio.value = preset.avversario; }
+  $("#prenota-titolo").textContent = `Biliardo ${s.tavolo} · ${nomeGiorno(s.data)} ${fascia(s.min, s.durata)}`;
+  $("#prenota-soci").hidden = S.ospite;
+  $("#prenota-ospite").hidden = !S.ospite;
+  if(!S.ospite){
+    $("#elenco-soci").innerHTML = Object.entries(S.soci).filter(([id, x]) => id !== S.uid && x.stato === "attivo")
+      .map(([, x]) => `<option value="${esc(x.nome)}">`).join("");
+    f.specialita.innerHTML = SPECIALITA.map(x => `<option>${esc(x)}</option>`).join("");
+    f.livello.innerHTML = LIVELLI.map(l => `<option ${l === S.io.livello ? "selected" : ""}>${l}</option>`).join("");
+    if(s.avversario) f.avversario.value = nomeDi(s.avversario);
+  }
   mostraCampi();
   $("#dlg-prenota").showModal();
 }
 function mostraCampi(){
-  const modo = $("#form-prenota").modo.value;
-  $$("#form-prenota [data-modo]").forEach(el => el.hidden = el.dataset.modo !== modo);
+  const f = $("#form-prenota");
+  $$("#form-prenota [data-modo]").forEach(el => el.hidden = el.dataset.modo !== f.modo.value);
+  f.avversarioOspite.disabled = f.solo.checked;
 }
 $("#form-prenota").addEventListener("change", mostraCampi);
 $("#prenota-annulla").addEventListener("click", () => $("#dlg-prenota").close());
 
 $("#form-prenota").addEventListener("submit", async e => {
   e.preventDefault();
-  const f = e.target, modo = f.modo.value, {tavolo, min, partita} = inCorso, lista = attive();
-  if(occupato(tavolo, min, min + SALA.durata, lista)) return toast("Nel frattempo il biliardo è stato prenotato");
-  if(giocaGia(S.uid, min, lista)) return toast("Hai già una partita in quell'orario");
-  if(modo === "socio" && !f.socio.value) return toast("Scegli il socio con cui giochi");
-  if(modo === "socio" && giocaGia(f.socio.value, min, lista)) return toast(`${nomeDi(f.socio.value)} ha già una partita in quell'orario`);
-  if(modo === "ospite" && !f.ospite.value.trim()) return toast("Scrivi il nome dell'ospite");
-  if(modo === "cerca" && lista.some(p => p.titolare === S.uid && p.stato === "aperta")) return toast("Hai già una richiesta «Cerco avversario» aperta");
+  const f = e.target, s = S.sel, lista = prenDi(s.data), err = erroreSel(s);
+  if(err) return toast(err);
+  const p = {...orari(s), creata: ORA_SERVER};
 
-  const inizio = msRoma(S.oggi, min);
-  const p = {
-    tavolo, min, inizio, fine: inizio + SALA.durata * 60000,
-    apertura: msRoma(S.oggi, minuti(SALA.apronoAlle)),
-    titolare: S.uid, titolareNome: S.io.nome, stato: "confermata", creata: ORA_SERVER
-  };
-  if(modo === "socio"){ p.avversario = f.socio.value; p.avversarioNome = nomeDi(f.socio.value); }
-  if(modo === "ospite") p.ospite = f.ospite.value.trim().slice(0, 60);
-  if(modo === "cerca"){
-    p.stato = "aperta"; p.specialita = f.specialita.value; p.livello = f.livello.value;
-    if(f.nota.value.trim()) p.nota = f.nota.value.trim().slice(0, 120);
-    p.scade = inizio - SALA.scadenzaOre * 3600000;
-    if(p.scade <= Date.now()) return toast(`Troppo tardi per cercare un avversario: serve almeno ${SALA.scadenzaOre} ore di anticipo`);
+  if(S.ospite){
+    const nome = f.nomeOspite.value.trim().replace(/\s+/g, " ");
+    if(nome.length < 2) return toast("Scrivi il tuo nome");
+    p.titolare = S.uid; p.titolareNome = nome.slice(0, 60); p.stato = "da_confermare";
+    if(!f.solo.checked){
+      const avv = f.avversarioOspite.value.trim().replace(/\s+/g, " ");
+      if(avv.length < 2) return toast("Scrivi il nome dell'avversario, oppure spunta «Gioco da solo»");
+      p.avversarioNome = avv.slice(0, 60);
+    }
+  }else{
+    const modo = f.modo.value;
+    if(giocaGia(lista, S.uid, s.min, s.min + s.durata)) return toast("Hai già una partita in quell'orario");
+    p.titolare = S.uid; p.titolareNome = S.io.nome; p.stato = "confermata";
+    if(modo === "persona"){
+      const nome = f.avversario.value.trim().replace(/\s+/g, " ");
+      if(nome.length < 2) return toast("Scrivi il nome dell'avversario");
+      const uid = uidDaNome(nome);
+      if(uid){
+        if(giocaGia(lista, uid, s.min, s.min + s.durata)) return toast(`${nomeDi(uid)} ha già una partita in quell'orario`);
+        p.avversario = uid; p.avversarioNome = nomeDi(uid);
+      }else p.avversarioNome = nome.slice(0, 60);
+      if(f.nonSocio.checked) p.ospite = true;
+    }
+    if(modo === "cerca"){
+      if(lista.some(x => x.titolare === S.uid && x.stato === "aperta")) return toast("Hai già una richiesta «Cerco avversario» aperta");
+      p.stato = "aperta"; p.specialita = f.specialita.value; p.livello = f.livello.value;
+      if(f.nota.value.trim()) p.nota = f.nota.value.trim().slice(0, 120);
+      p.scade = p.inizio - SALA.scadenzaOre * 3600000;
+      if(p.scade <= Date.now()) return toast(`Troppo tardi per cercare un avversario: serve almeno ${SALA.scadenzaOre} ore di anticipo`);
+    }
+    if(s.partita) p.partita = s.partita;
   }
-  if(partita) p.partita = partita;
 
-  const id = nuovoId(), w = {[percorso(id)]: p};
-  slotDi(S.oggi, tavolo, min).forEach(k => w[k] = id);
-  if(partita){ w["partite/" + partita + "/stato"] = "prenotata"; w["partite/" + partita + "/prenotazione"] = id; }
+  const id = nuovoId(), w = {[percorso(s.data, id)]: p};
+  slotDi(s.data, s.tavolo, s.min, s.durata).forEach(k => w[k] = id);
+  if(s.partita){ w["partite/" + s.partita + "/stato"] = "prenotata"; w["partite/" + s.partita + "/prenotazione"] = id; }
   const btn = f.querySelector("[type=submit]"); btn.disabled = true;
   try{
     await dbWrite(w);
     $("#dlg-prenota").close();
-    toast(modo === "cerca" ? "Richiesta pubblicata: compare in giallo" : "Prenotazione fatta!");
+    S.sel = null;
+    if(S.ospite){ ricordaMia(s.data, id); await caricaMie(); }
+    disegnaGriglia();
+    toast(S.ospite ? "Prenotazione inviata: il direttivo la confermerà" : p.stato === "aperta" ? "Richiesta pubblicata: compare in giallo" : "Prenotazione fatta!");
   }catch(err){
     toast(err.code === "PERMISSION_DENIED" ? "Non è stato possibile prenotare: lo spazio potrebbe essere già occupato" : msgErrore(err));
   }finally{ btn.disabled = false; }
 });
 
+/* ================= modifica (spostare, allungare, accorciare) ================= */
+function iniziaModifica(data, id){
+  const p = prenotazione(data, id);
+  S.giorno = data;
+  S.sel = {data, tavolo: p.tavolo, min: p.min, durata: durataDi(p), id};
+  disegnaGriglia();
+  const el = $("#griglia .selezione");
+  if(el) el.scrollIntoView({block: "center", behavior: "smooth"});
+  toast("Trascina il riquadro o usa i pulsanti in basso, poi «Salva la modifica»");
+}
+async function salvaModifica(){
+  const s = S.sel, p = prenotazione(s.data, s.id), err = erroreSel(s);
+  if(err) return toast(err);
+  if(!S.ospite && giocaGia(prenDi(s.data), S.uid, s.min, s.min + s.durata, s.id)) return toast("Hai già un'altra partita in quell'orario");
+  const nuovo = orari(s), base = percorso(s.data, s.id) + "/", w = {};
+  Object.entries(nuovo).forEach(([k, v]) => w[base + k] = v);
+  if(p.stato === "aperta"){
+    w[base + "scade"] = nuovo.inizio - SALA.scadenzaOre * 3600000;
+    if(w[base + "scade"] <= Date.now()) return toast(`«Cerco avversario» richiede almeno ${SALA.scadenzaOre} ore di anticipo`);
+  }
+  const vecchi = new Set(slotDi(s.data, p.tavolo, p.min, durataDi(p))), nuovi = new Set(slotDi(s.data, s.tavolo, s.min, s.durata));
+  vecchi.forEach(k => { if(!nuovi.has(k)) w[k] = null; });
+  nuovi.forEach(k => { if(!vecchi.has(k)) w[k] = s.id; });
+  try{
+    await dbWrite(w);
+    S.sel = null;
+    if(S.ospite) await caricaMie();
+    disegnaGriglia();
+    toast("Prenotazione modificata");
+  }catch(err){ toast(err.code === "PERMISSION_DENIED" ? "Modifica non riuscita: lo spazio potrebbe essere già occupato" : msgErrore(err)); }
+}
+
 /* ================= dettaglio ================= */
-function apriDettaglio(id){
-  const p = S.pren[id];
+function apriDettaglio(data, id){
+  const p = prenotazione(data, id);
   if(!p) return;
-  const mio = p.titolare === S.uid;
-  let h = `<h3>Biliardo ${p.tavolo} · ${fascia(p.min)}</h3><p><b>${esc(p.titolareNome)}</b>${badgeNuovo(p.titolare)}`;
+  const mio = p.titolare === S.uid, d = durataDi(p), iniziata = p.inizio <= Date.now();
+  let h = `<h3>Biliardo ${p.tavolo} · ${nomeGiorno(data)} ${fascia(p.min, d)}</h3><p><b>${esc(p.titolareNome)}</b>${S.ospite ? "" : badgeNuovo(p.titolare)}`;
   if(p.stato === "aperta"){
     h += ` cerca un avversario.</p><p class="meta">${esc(p.specialita)} · livello ${esc(p.livello)}<br>
-      Se nessuno si aggiunge, alle ${hhmm(p.min - SALA.scadenzaOre * 60)} il biliardo si libera.</p>`;
+      Se nessuno si aggiunge, alle ${hhmm((p.min - SALA.scadenzaOre * 60 + 1440) % 1440)} il biliardo si libera.</p>`;
     if(p.nota) h += `<p class="nota">«${esc(p.nota)}»</p>`;
   }else{
-    h += ` gioca ${p.avversarioNome ? "con <b>" + esc(p.avversarioNome) + "</b>" : p.ospite ? "con <b>" + esc(p.ospite) + "</b> (ospite)" : "da solo"}.</p>`;
+    h += ` gioca ${p.avversarioNome ? "con <b>" + esc(p.avversarioNome) + "</b>" + (p.ospite ? " (non socio)" : "") : "da solo"}.</p>`;
+    if(p.stato === "da_confermare") h += `<p class="meta">Prenotazione da ospite: <b>da confermare</b> dal direttivo.</p>`;
   }
   let a = "";
-  if(p.stato === "aperta" && !mio) a += `<button class="btn primario" data-az="gioco">Gioco io</button>`;
+  if(p.stato === "aperta" && !mio && !S.ospite) a += `<button class="btn primario" data-az="gioco">Gioco io</button>`;
+  if(p.stato === "da_confermare" && isAdmin()) a += `<button class="btn primario" data-az="conferma">Conferma</button>`;
   if(p.stato === "aperta" && mio) a += `<button class="btn" data-az="solo">Gioco da solo</button>`;
+  if(mio && !iniziata) a += `<button class="btn" data-az="modifica">Sposta o cambia durata</button>`;
   if(mio) a += `<button class="btn pericolo" data-az="annulla">Annulla la prenotazione</button>`;
   else if(isAdmin()) a += `<button class="btn pericolo" data-az="annulla">Annulla (amministratore)</button>`;
   a += `<button class="btn" data-az="chiudi">Chiudi</button>`;
   $("#dettaglio").innerHTML = h;
   $("#dettaglio-azioni").innerHTML = a;
   $("#dettaglio-azioni").dataset.id = id;
+  $("#dettaglio-azioni").dataset.data = data;
   $("#dlg-dettaglio").showModal();
 }
 
 $("#dettaglio-azioni").addEventListener("click", async e => {
   const az = e.target.closest("[data-az]") && e.target.closest("[data-az]").dataset.az;
   if(!az) return;
-  const id = e.currentTarget.dataset.id, p = S.pren[id];
+  const {id, data} = e.currentTarget.dataset, p = prenotazione(data, id), k = percorso(data, id) + "/";
   if(az === "chiudi" || !p) return $("#dlg-dettaglio").close();
   try{
     if(az === "gioco"){
-      if(giocaGia(S.uid, p.min)) return toast("Hai già una partita in quell'orario");
-      await dbWrite({[percorso(id) + "/stato"]: "confermata", [percorso(id) + "/avversario"]: S.uid, [percorso(id) + "/avversarioNome"]: S.io.nome});
-      toast(`Fatto! Giochi con ${p.titolareNome} alle ${hhmm(p.min)}, biliardo ${p.tavolo}`);
+      if(giocaGia(prenDi(data), S.uid, p.min, p.min + durataDi(p))) return toast("Hai già una partita in quell'orario");
+      await dbWrite({[k + "stato"]: "confermata", [k + "avversario"]: S.uid, [k + "avversarioNome"]: S.io.nome});
+      toast(`Fatto! Giochi con ${p.titolareNome} ${nomeGiorno(data)} alle ${hhmm(p.min)}, biliardo ${p.tavolo}`);
     }
+    if(az === "conferma"){ await dbWrite({[k + "stato"]: "confermata"}); toast("Prenotazione confermata"); }
     if(az === "solo"){
-      await dbWrite({[percorso(id) + "/stato"]: "confermata", [percorso(id) + "/scade"]: null,
-        [percorso(id) + "/specialita"]: null, [percorso(id) + "/livello"]: null, [percorso(id) + "/nota"]: null});
+      await dbWrite({[k + "stato"]: "confermata", [k + "scade"]: null, [k + "specialita"]: null, [k + "livello"]: null, [k + "nota"]: null});
       toast("Confermato: il biliardo è tuo");
     }
+    if(az === "modifica"){ $("#dlg-dettaglio").close(); return iniziaModifica(data, id); }
     if(az === "annulla"){
       $("#dlg-dettaglio").close();
       if(!(await chiedi("Vuoi annullare la prenotazione e liberare il biliardo?", "Sì, annulla", "No"))) return;
-      const w = {[percorso(id) + "/stato"]: "annullata"};
-      slotDi(S.oggi, p.tavolo, p.min).forEach(k => w[k] = null);
+      const w = {[k + "stato"]: "annullata"};
+      slotDi(data, p.tavolo, p.min, durataDi(p)).forEach(x => w[x] = null);
       await dbWrite(w);
+      if(S.ospite) await caricaMie();
       toast("Prenotazione annullata");
     }
     $("#dlg-dettaglio").close();
@@ -125,11 +192,31 @@ $("#dettaglio-azioni").addEventListener("click", async e => {
 
 /* Le richieste "Cerco avversario" scadute liberano il biliardo: lo fa il primo socio che ha l'app aperta. */
 function liberaScadute(){
-  Object.entries(S.pren).forEach(([id, p]) => {
+  if(S.ospite) return;
+  Object.entries(S.pren).forEach(([data, tutte]) => Object.entries(tutte || {}).forEach(([id, p]) => {
     if(!scaduta(p) || S.scadendo.has(id)) return;
     S.scadendo.add(id);
-    const w = {[percorso(id) + "/stato"]: "scaduta"};
-    slotDi(S.oggi, p.tavolo, p.min).forEach(k => w[k] = null);
+    const w = {[percorso(data, id) + "/stato"]: "scaduta"};
+    slotDi(data, p.tavolo, p.min, durataDi(p)).forEach(k => w[k] = null);
     dbWrite(w).catch(() => S.scadendo.delete(id));
-  });
+  }));
+}
+
+/* ================= ospiti: le proprie prenotazioni ================= */
+const MKEY = KEY + "mie";
+function ricordaMia(data, id){
+  let l = [];
+  try{ l = JSON.parse(localStorage.getItem(MKEY) || "[]"); }catch(e){}
+  l.push({data, id});
+  try{ localStorage.setItem(MKEY, JSON.stringify(l.filter(x => x.data >= S.oggi))); }catch(e){}
+}
+async function caricaMie(){
+  let l = [];
+  try{ l = JSON.parse(localStorage.getItem(MKEY) || "[]").filter(x => x.data >= S.oggi); }catch(e){}
+  const mie = {};
+  await Promise.all(l.map(async x => {
+    try{ const p = await dbGet(percorso(x.data, x.id)); if(p && ATTIVE.includes(p.stato)) mie[x.id] = p; }catch(e){}
+  }));
+  S.mie = mie;
+  disegnaTutto();
 }

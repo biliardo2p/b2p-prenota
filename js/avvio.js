@@ -47,6 +47,10 @@ async function creaScheda(nome, livello){
   });
   avvia();
 }
+$("#entra-ospite").addEventListener("click", async () => {
+  try{ await entraOspite(); avvia(); }
+  catch(err){ toast(err.code === "ADMIN_ONLY_OPERATION" || err.code === "OPERATION_NOT_ALLOWED" ? "L'accesso come ospite non è attivo" : msgErrore(err)); }
+});
 $$(".esci").forEach(b => b.addEventListener("click", esci));
 $("#ricontrolla").addEventListener("click", () => avvia());
 
@@ -63,15 +67,16 @@ function disegnaTutto(){
   liberaScadute();
   disegnaGriglia();
   disegnaBacheca();
-  disegnaPartite();
-  disegnaSoci();
+  if(!S.ospite){ disegnaPartite(); disegnaSoci(); }
 }
 
 /* ================= avvio ================= */
 async function avvia(){
   chiudiAscolti();
+  S.sel = null;
   $("#utente").textContent = "";
   if(!session){ mostra("accesso"); return; }
+  if(session.ospite){ avviaOspite(); return; }
   let io;
   try{ io = await dbGet("soci/" + session.uid); }
   catch(err){
@@ -82,30 +87,54 @@ async function avvia(){
   if(io.stato === "attesa"){ $("#attesa-nome").textContent = io.nome; mostra("attesa"); return; }
   if(io.stato !== "attivo"){ toast("Utenza sospesa: contatta il direttivo"); session = null; salvaSessione(); mostra("accesso"); return; }
 
-  S.uid = session.uid; S.io = io;
+  S.uid = session.uid; S.io = io; S.ospite = false;
   $("#utente").textContent = io.nome;
+  document.body.classList.remove("ospite");
+  mostra("app");
+  disegnaProfilo();
+  ascoltaTutto();
+}
+function avviaOspite(){
+  S.uid = session.uid; S.io = {nome: "Ospite", ruolo: "ospite", stato: "attivo"}; S.ospite = true;
+  $("#utente").textContent = "Ospite";
+  document.body.classList.add("ospite");
   mostra("app");
   disegnaProfilo();
   ascoltaTutto();
 }
 
-function ascoltaTutto(){
+function giorni(){
   S.oggi = adesso().data;
+  S.domani = piuGiorni(S.oggi, 1);
+  if(S.giorno !== S.oggi && S.giorno !== S.domani) S.giorno = S.oggi;
   $("#oggi").textContent = dataLunga(S.oggi);
+  $("#giorno-oggi").dataset.giorno = S.oggi;
+  $("#giorno-domani").dataset.giorno = S.domani;
+}
+function ascoltaTutto(){
+  giorni();
+  S.pren = {}; S.slot = {};
+  if(S.ospite){
+    [S.oggi, S.domani].forEach(d => ascolta("slot-" + d, "slot/" + d, "", v => { S.slot[d] = v || {}; disegnaTutto(); }));
+    caricaMie();
+    return;
+  }
   ascolta("soci", "soci", "", v => {
     S.soci = v || {};
     const io = S.soci[S.uid];
     if(!io || io.stato !== "attivo"){ esci(); return; }
     S.io = io; disegnaProfilo(); disegnaTutto();
   });
-  ascolta("pren", "prenotazioni/" + S.oggi, "", v => { S.pren = v || {}; disegnaTutto(); });
+  [S.oggi, S.domani].forEach(d => ascolta("pren-" + d, "prenotazioni/" + d, "", v => { S.pren[d] = v || {}; disegnaTutto(); }));
   ascolta("partite", "partite", `&orderBy="giorno"&startAt="${S.oggi}"`, v => { S.partite = v || {}; disegnaTutto(); });
 }
 
-/* ogni 30 secondi: cambio di giorno, apertura delle 9, scadenze */
+/* ogni 30 secondi: cambio di giorno, aperture delle 9 e delle 21, scadenze */
+let giri = 0;
 setInterval(() => {
   if(!S.io) return;
-  if(adesso().data !== S.oggi){ S.pren = {}; ascoltaTutto(); }
+  if(adesso().data !== S.oggi){ chiudiAscolti(); ascoltaTutto(); return; }
+  if(S.ospite && ++giri % 4 === 0) caricaMie();
   disegnaTutto();
 }, 30000);
 

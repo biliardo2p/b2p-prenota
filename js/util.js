@@ -6,14 +6,19 @@ const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 
 /* ================= stato dell'app (condiviso dagli altri file) ================= */
 const S = {
-  uid: null, io: null,      /* socio collegato e sua scheda */
+  uid: null, io: null,      /* utente collegato e sua scheda */
+  ospite: false,            /* entrato come ospite (senza registrazione) */
   soci: {},                 /* uid → scheda socio */
-  pren: {},                 /* prenotazioni di oggi: id → prenotazione */
+  pren: {},                 /* data → {id → prenotazione} (oggi e domani; solo soci) */
+  slot: {},                 /* data → {tavolo → {HHMM → id}} (ospiti: occupazione senza nomi) */
+  mie: {},                  /* ospiti: id → propria prenotazione */
   partite: {},              /* partite programmate da oggi in poi */
-  oggi: null,
+  oggi: null, domani: null,
+  giorno: null,             /* giorno mostrato nella griglia */
+  sel: null,                /* selezione in corso: {data, tavolo, min, durata, id?} */
   scadendo: new Set()
 };
-const ATTIVE = ["aperta", "confermata"];
+const ATTIVE = ["aperta", "confermata", "da_confermare"];
 const isAdmin = () => !!(S.io && S.io.ruolo === "admin" && S.io.stato === "attivo");
 const nomeDi = uid => (S.soci[uid] && S.soci[uid].nome) || "Socio";
 const nuovoSocio = uid => { const s = S.soci[uid]; return !!(s && s.nuovoFinoAl && s.nuovoFinoAl >= S.oggi); };
@@ -67,4 +72,14 @@ function piuGiorni(data, n){
 }
 const dataLunga = d => new Date(d + "T12:00:00Z").toLocaleDateString("it-IT", {weekday: "long", day: "numeric", month: "long", timeZone: "UTC"});
 const dataBreve = d => new Date(d + "T12:00:00Z").toLocaleDateString("it-IT", {weekday: "short", day: "numeric", month: "short", timeZone: "UTC"});
-const fascia = min => hhmm(min) + "–" + hhmm(min + SALA.durata);
+const durataDi = p => p.durata || SALA.durata;
+const fascia = (min, durata = SALA.durata) => hhmm(min) + "–" + hhmm(min + durata);
+const testoDurata = d => { const h = Math.floor(d / 60), m = d % 60;
+  return (h ? (h === 1 ? "1 ora" : h + " ore") : "") + (h && m ? " e " : "") + (m ? m + " minuti" : ""); };
+/* quando si apre la prenotazione di una partita che inizia alle "min" del giorno "data" */
+function apreAlle(data, min){
+  return min < minuti(SALA.mattinoFinoA)
+    ? msRoma(piuGiorni(data, -1), minuti(SALA.aperturaMattino))
+    : msRoma(data, minuti(SALA.aperturaPomeriggio));
+}
+const nomeGiorno = d => d === S.oggi ? "oggi" : d === S.domani ? "domani" : dataLunga(d);
