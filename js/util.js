@@ -27,7 +27,12 @@ const badgeNuovo = uid => nuovoSocio(uid) ? ' <span class="badge">nuovo socio</s
 /* messaggio breve in basso */
 let toastT = null;
 function toast(msg){
-  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  const t = $("#toast");
+  /* con una finestra aperta il messaggio va dentro la finestra, altrimenti resterebbe nascosto dietro */
+  const dlg = document.querySelector("dialog[open]");
+  const dove = dlg || document.body;
+  if(t.parentNode !== dove) dove.appendChild(t);
+  t.textContent = msg; t.classList.add("show");
   clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 4000);
 }
 
