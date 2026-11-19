@@ -1,0 +1,169 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "soci": {
+      ".read": "auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo'",
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && ((auth.uid == $uid && !data.exists() && newData.child('stato').val() == 'attesa' && newData.child('ruolo').val() == 'socio') || (auth.uid == $uid && data.exists() && newData.exists() && data.child('stato').val() == 'attivo' && newData.child('stato').val() == data.child('stato').val() && newData.child('ruolo').val() == data.child('ruolo').val() && newData.child('nome').val() == data.child('nome').val() && newData.child('nuovoFinoAl').val() == data.child('nuovoFinoAl').val() && newData.child('padrino').val() == data.child('padrino').val() && newData.child('creato').val() == data.child('creato').val()) || (auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo' && root.child('soci/' + auth.uid + '/ruolo').val() == 'admin'))",
+        ".validate": "newData.hasChildren(['nome', 'stato', 'ruolo'])",
+        "nome": {
+          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 60"
+        },
+        "stato": {
+          ".validate": "newData.val() == 'attesa' || newData.val() == 'attivo' || newData.val() == 'sospeso'"
+        },
+        "ruolo": {
+          ".validate": "newData.val() == 'socio' || newData.val() == 'admin'"
+        },
+        "livello": {
+          ".validate": "newData.val() == 'principiante' || newData.val() == 'intermedio' || newData.val() == 'esperto'"
+        },
+        "nuovoFinoAl": {
+          ".validate": "newData.isString() && newData.val().matches(/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/)"
+        },
+        "padrino": {
+          ".validate": "newData.isBoolean()"
+        },
+        "creato": {
+          ".validate": "newData.isNumber()"
+        },
+        "$altro": {
+          ".validate": false
+        }
+      }
+    },
+    "privati": {
+      ".read": "(auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo' && root.child('soci/' + auth.uid + '/ruolo').val() == 'admin')",
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid",
+        "email": {
+          ".validate": "newData.isString() && newData.val() == auth.token.email"
+        },
+        "$altro": {
+          ".validate": false
+        }
+      }
+    },
+    "prenotazioni": {
+      "$data": {
+        ".read": "auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo'",
+        ".validate": "$data.matches(/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/)",
+        "$id": {
+          ".write": "auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo' && ((!data.exists() && newData.child('titolare').val() == auth.uid && newData.child('titolareNome').val() == root.child('soci/' + auth.uid + '/nome').val() && newData.child('inizio').val() > now && now >= newData.child('apertura').val() && newData.child('apertura').val() % 3600000 == 0 && (newData.child('apertura').val() % 86400000 == 25200000 || newData.child('apertura').val() % 86400000 == 28800000) && newData.child('inizio').val() - newData.child('apertura').val() < 54000000 && newData.child('inizio').val() % 1800000 == 0 && newData.child('fine').val() == newData.child('inizio').val() + 7200000 && ((newData.child('stato').val() == 'confermata' && !newData.child('scade').exists()) || (newData.child('stato').val() == 'aperta' && !newData.child('avversario').exists() && newData.child('scade').val() == newData.child('inizio').val() - 10800000 && now < newData.child('scade').val())) && (!newData.child('avversario').exists() || (newData.child('avversario').val() != auth.uid && newData.child('avversarioNome').val() == root.child('soci/' + newData.child('avversario').val() + '/nome').val()))) || (data.exists() && newData.exists() && newData.child('tavolo').val() == data.child('tavolo').val() && newData.child('min').val() == data.child('min').val() && newData.child('inizio').val() == data.child('inizio').val() && newData.child('fine').val() == data.child('fine').val() && newData.child('titolare').val() == data.child('titolare').val() && ((data.child('titolare').val() == auth.uid && (data.child('stato').val() == 'aperta' || data.child('stato').val() == 'confermata') && newData.child('stato').val() == 'annullata' && newData.child('avversario').val() == data.child('avversario').val()) || (data.child('titolare').val() == auth.uid && data.child('stato').val() == 'aperta' && newData.child('stato').val() == 'confermata' && !newData.child('avversario').exists() && !newData.child('scade').exists()) || (data.child('stato').val() == 'aperta' && data.child('titolare').val() != auth.uid && now < data.child('scade').val() && newData.child('stato').val() == 'confermata' && newData.child('avversario').val() == auth.uid && newData.child('avversarioNome').val() == root.child('soci/' + auth.uid + '/nome').val() && newData.child('scade').val() == data.child('scade').val()) || (data.child('stato').val() == 'aperta' && now >= data.child('scade').val() && newData.child('stato').val() == 'scaduta' && newData.child('avversario').val() == data.child('avversario').val() && newData.child('scade').val() == data.child('scade').val()) || ((auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo' && root.child('soci/' + auth.uid + '/ruolo').val() == 'admin') && newData.child('stato').val() == 'annullata'))))",
+          ".validate": "newData.hasChildren(['tavolo', 'min', 'inizio', 'fine', 'apertura', 'titolare', 'titolareNome', 'stato'])",
+          "tavolo": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 8"
+          },
+          "min": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 1440 && newData.val() % 30 == 0"
+          },
+          "inizio": {
+            ".validate": "newData.isNumber()"
+          },
+          "fine": {
+            ".validate": "newData.isNumber()"
+          },
+          "apertura": {
+            ".validate": "newData.isNumber()"
+          },
+          "scade": {
+            ".validate": "newData.isNumber()"
+          },
+          "creata": {
+            ".validate": "newData.isNumber()"
+          },
+          "titolare": {
+            ".validate": "newData.isString()"
+          },
+          "avversario": {
+            ".validate": "newData.isString()"
+          },
+          "titolareNome": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 60"
+          },
+          "avversarioNome": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 60"
+          },
+          "ospite": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 60"
+          },
+          "stato": {
+            ".validate": "newData.val() == 'aperta' || newData.val() == 'confermata' || newData.val() == 'annullata' || newData.val() == 'scaduta'"
+          },
+          "specialita": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
+          },
+          "livello": {
+            ".validate": "newData.val() == 'principiante' || newData.val() == 'intermedio' || newData.val() == 'esperto'"
+          },
+          "nota": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+          },
+          "partita": {
+            ".validate": "newData.isString()"
+          },
+          "$altro": {
+            ".validate": false
+          }
+        }
+      }
+    },
+    "slot": {
+      "$data": {
+        ".read": "auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo'",
+        "$tavolo": {
+          "$ora": {
+            ".write": "auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo' && ((!data.exists() && newData.exists() && !root.child('prenotazioni/' + $data + '/' + newData.val()).exists() && newData.parent().parent().parent().parent().child('prenotazioni/' + $data + '/' + newData.val() + '/titolare').val() == auth.uid && (newData.parent().parent().parent().parent().child('prenotazioni/' + $data + '/' + newData.val() + '/stato').val() == 'aperta' || newData.parent().parent().parent().parent().child('prenotazioni/' + $data + '/' + newData.val() + '/stato').val() == 'confermata')) || (data.exists() && !newData.exists() && (newData.parent().parent().parent().parent().child('prenotazioni/' + $data + '/' + data.val() + '/stato').val() == 'annullata' || newData.parent().parent().parent().parent().child('prenotazioni/' + $data + '/' + data.val() + '/stato').val() == 'scaduta')))",
+            ".validate": "newData.isString()"
+          }
+        }
+      }
+    },
+    "partite": {
+      ".read": "auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo'",
+      ".indexOn": [
+        "giorno"
+      ],
+      "$id": {
+        ".write": "auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo' && ((!data.exists() && newData.child('proponente').val() == auth.uid && newData.child('proponenteNome').val() == root.child('soci/' + auth.uid + '/nome').val() && ((newData.child('stato').val() == 'aperta' && !newData.child('avversario').exists()) || (newData.child('stato').val() == 'proposta' && newData.child('avversario').isString() && newData.child('avversario').val() != auth.uid && newData.child('avversarioNome').val() == root.child('soci/' + newData.child('avversario').val() + '/nome').val()))) || (data.exists() && newData.exists() && newData.child('giorno').val() == data.child('giorno').val() && newData.child('min').val() == data.child('min').val() && newData.child('proponente').val() == data.child('proponente').val() && newData.child('proponenteNome').val() == data.child('proponenteNome').val() && ((data.child('proponente').val() == auth.uid && newData.child('stato').val() == 'annullata' && newData.child('avversario').val() == data.child('avversario').val()) || (data.child('avversario').val() == auth.uid && data.child('stato').val() == 'proposta' && (newData.child('stato').val() == 'accettata' || newData.child('stato').val() == 'rifiutata') && newData.child('avversario').val() == data.child('avversario').val()) || (data.child('stato').val() == 'aperta' && data.child('proponente').val() != auth.uid && newData.child('stato').val() == 'accettata' && newData.child('avversario').val() == auth.uid && newData.child('avversarioNome').val() == root.child('soci/' + auth.uid + '/nome').val()) || ((data.child('proponente').val() == auth.uid || data.child('avversario').val() == auth.uid) && data.child('stato').val() == 'accettata' && newData.child('stato').val() == 'prenotata' && newData.child('avversario').val() == data.child('avversario').val() && newData.parent().parent().child('prenotazioni/' + newData.child('giorno').val() + '/' + newData.child('prenotazione').val() + '/partita').val() == $id) || (auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo' && root.child('soci/' + auth.uid + '/ruolo').val() == 'admin'))))",
+        ".validate": "newData.hasChildren(['giorno', 'min', 'proponente', 'proponenteNome', 'stato'])",
+        "giorno": {
+          ".validate": "newData.isString() && newData.val().matches(/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/)"
+        },
+        "min": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 1440 && newData.val() % 30 == 0"
+        },
+        "proponente": {
+          ".validate": "newData.isString()"
+        },
+        "avversario": {
+          ".validate": "newData.isString()"
+        },
+        "proponenteNome": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 60"
+        },
+        "avversarioNome": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 60"
+        },
+        "stato": {
+          ".validate": "newData.val() == 'aperta' || newData.val() == 'proposta' || newData.val() == 'accettata' || newData.val() == 'rifiutata' || newData.val() == 'prenotata' || newData.val() == 'annullata'"
+        },
+        "nota": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+        },
+        "prenotazione": {
+          ".validate": "newData.isString()"
+        },
+        "creata": {
+          ".validate": "newData.isNumber()"
+        },
+        "$altro": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}

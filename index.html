@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Prenota 2P · Biliardo Seconda Passione</title>
+<meta name="description" content="Prenotazione dei biliardi del Biliardo Seconda Passione">
+<link rel="icon" href="img/logo.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#070d18">
+<link rel="apple-touch-icon" href="img/icona-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Prenota 2P">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@600;700&display=swap">
+<link rel="stylesheet" href="css/prenota.css?v=2026111901">
+</head>
+<body>
+<header class="testata">
+  <img src="img/logo-96.png" alt="" width="44" height="44">
+  <div class="titoli">
+    <div class="titolo">Prenota biliardi</div>
+    <div id="oggi" class="sotto"></div>
+  </div>
+  <div id="utente" class="sotto destra"></div>
+</header>
+
+<!-- ============ accesso / registrazione ============ -->
+<main id="accesso" class="wrap" hidden>
+  <div class="scegli-accesso">
+    <button class="attivo" data-vai="accedi">Accedi</button>
+    <button data-vai="registrati">Prima volta? Registrati</button>
+  </div>
+  <form id="form-accedi" class="pannello">
+    <label>Email <input name="email" type="email" autocomplete="username" required></label>
+    <label>Password <input name="pw" type="password" autocomplete="current-password" required></label>
+    <button class="btn primario grande" type="submit">Entra</button>
+    <button class="link" type="button" id="pw-dimenticata">Password dimenticata?</button>
+  </form>
+  <form id="form-registrati" class="pannello" hidden>
+    <p>Registrati con la tua email. Il direttivo controlla che tu sia socio e abilita l'utenza: poi potrai prenotare.</p>
+    <label>Nome e cognome <input name="nome" autocomplete="name" maxlength="60" required></label>
+    <label>Email <input name="email" type="email" autocomplete="username" required></label>
+    <label>Scegli una password (almeno 6 caratteri) <input name="pw" type="password" autocomplete="new-password" minlength="6" required></label>
+    <label>Ripeti la password <input name="pw2" type="password" autocomplete="new-password" minlength="6" required></label>
+    <label>Il tuo livello di gioco <select name="livello"></select></label>
+    <label class="spunta"><input type="checkbox" required> Ho letto l'informativa qui sotto</label>
+    <button class="btn primario grande" type="submit">Invia la richiesta</button>
+  </form>
+  <details class="privacy">
+    <summary>Informativa sui dati personali</summary>
+    <p>L'ASD Biliardo Seconda Passione conserva nome, cognome, email e livello di gioco dei soci, e le loro prenotazioni,
+      solo per gestire l'uso dei biliardi. Nome e prenotazioni sono visibili agli altri soci abilitati; l'email solo al direttivo.
+      I dati sono custoditi su Google Firebase (server in Belgio). Per farli correggere o cancellare scrivi al direttivo.</p>
+  </details>
+</main>
+
+<!-- utenza senza scheda socio -->
+<main id="completa" class="wrap" hidden>
+  <form id="form-completa" class="pannello">
+    <h2>Completa la registrazione</h2>
+    <label>Nome e cognome <input name="nome" autocomplete="name" maxlength="60" required></label>
+    <label>Il tuo livello di gioco <select name="livello"></select></label>
+    <button class="btn primario grande" type="submit">Invia la richiesta</button>
+    <button class="btn esci" type="button">Esci</button>
+  </form>
+</main>
+
+<!-- in attesa di approvazione -->
+<main id="attesa" class="wrap" hidden>
+  <div class="pannello">
+    <h2>Richiesta inviata</h2>
+    <p>Ciao <b id="attesa-nome"></b>, la tua richiesta è arrivata al direttivo.
+      Appena verrà approvata potrai prenotare i biliardi.</p>
+    <button class="btn primario grande" id="ricontrolla">Ricontrolla</button>
+    <button class="btn esci" type="button">Esci</button>
+  </div>
+</main>
+
+<!-- ============ app ============ -->
+<div id="app" hidden>
+  <nav>
+    <button class="attivo" data-tab="tab-oggi">Oggi</button>
+    <button data-tab="tab-bacheca">Avversari <span id="conta-bacheca" class="conta" hidden></span></button>
+    <button data-tab="tab-partite">Partite <span id="conta-partite" class="conta" hidden></span></button>
+    <button data-tab="tab-profilo">Profilo</button>
+    <button data-tab="tab-soci" id="tab-soci-btn" hidden>Soci <span id="conta-soci" class="conta" hidden></span></button>
+  </nav>
+
+  <main class="wrap">
+    <section id="tab-oggi" class="tab">
+      <p id="avviso" class="avviso"></p>
+      <p id="avviso-padrini" class="avviso padrini" hidden></p>
+      <div class="legenda">
+        <span class="lg libera">Libero</span>
+        <span class="lg aperta">Cerca avversario</span>
+        <span class="lg confermata">Prenotato</span>
+        <span class="lg mia">La tua</span>
+        <span class="lg no">Meno di 2 ore libere</span>
+      </div>
+      <div id="griglia"></div>
+    </section>
+
+    <section id="tab-bacheca" class="tab" hidden>
+      <h2>Cercano un avversario oggi</h2>
+      <ul id="bacheca" class="schede"></ul>
+    </section>
+
+    <section id="tab-partite" class="tab" hidden>
+      <h2>Le tue partite</h2>
+      <ul id="partite" class="schede"></ul>
+      <h2>Programma una partita</h2>
+      <p class="meta">Per i prossimi giorni. Non prenota il biliardo: il giorno stesso, dalle 9, lo prenoti con un tocco.</p>
+      <form id="form-partita" class="pannello">
+        <label>Giorno <input name="giorno" type="date" required></label>
+        <label>Ora <select name="ora"></select></label>
+        <label>Con chi <select name="avversario"></select></label>
+        <label>Nota (facoltativa) <input name="nota" maxlength="120"></label>
+        <button class="btn primario grande" type="submit">Proponi la partita</button>
+      </form>
+    </section>
+
+    <section id="tab-profilo" class="tab" hidden>
+      <form id="form-profilo" class="pannello">
+        <h2>Il tuo profilo</h2>
+        <label>Nome <input name="nome" disabled></label>
+        <label>Email <input name="email" disabled></label>
+        <label>Livello di gioco <select name="livello"></select></label>
+        <button class="btn primario" type="submit">Salva</button>
+      </form>
+      <div class="pannello">
+        <button class="btn" id="cambia-pw" type="button">Cambia password</button>
+        <a class="btn" href="manuale.html">Come si usa</a>
+        <button class="btn" id="esci" type="button">Esci</button>
+      </div>
+    </section>
+
+    <section id="tab-soci" class="tab" hidden>
+      <h2>Richieste da approvare</h2>
+      <ul id="soci-attesa" class="schede"></ul>
+      <h2>Soci</h2>
+      <ul id="soci-elenco" class="schede"></ul>
+    </section>
+  </main>
+</div>
+
+<!-- nuova prenotazione -->
+<dialog id="dlg-prenota">
+  <form id="form-prenota">
+    <h3 id="prenota-titolo"></h3>
+    <fieldset>
+      <legend>Con chi giochi?</legend>
+      <label class="spunta"><input type="radio" name="modo" value="socio" checked> Con un socio</label>
+      <label class="spunta"><input type="radio" name="modo" value="ospite"> Con un ospite</label>
+      <label class="spunta"><input type="radio" name="modo" value="solo"> Da solo</label>
+      <label class="spunta"><input type="radio" name="modo" value="cerca"> <b>Cerco un avversario</b></label>
+    </fieldset>
+    <label data-modo="socio">Socio <select name="socio"></select></label>
+    <label data-modo="ospite" hidden>Nome dell'ospite <input name="ospite" maxlength="60"></label>
+    <div data-modo="cerca" hidden class="colonna">
+      <label>Specialità <select name="specialita"></select></label>
+      <label>Il tuo livello <select name="livello"></select></label>
+      <label>Nota (facoltativa) <input name="nota" maxlength="120" placeholder="es. sono nuovo, cerco una partita tranquilla"></label>
+      <p class="meta">Se nessuno si aggiunge, 3 ore prima dell'inizio il biliardo si libera da solo.</p>
+    </div>
+    <div class="riga">
+      <button class="btn primario grande" type="submit">Prenota</button>
+      <button class="btn" type="button" id="prenota-annulla">Indietro</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- dettaglio prenotazione -->
+<dialog id="dlg-dettaglio">
+  <div id="dettaglio"></div>
+  <div id="dettaglio-azioni" class="riga a-capo"></div>
+</dialog>
+
+<!-- conferma -->
+<dialog id="dlg-chiedi">
+  <p id="chiedi-testo" class="grande"></p>
+  <div class="riga"><button class="btn primario" id="chiedi-si"></button><button class="btn" id="chiedi-no"></button></div>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/config.js?v=2026111901"></script>
+<script src="js/util.js?v=2026111901"></script>
+<script src="js/dati.js?v=2026111901"></script>
+<script src="js/griglia.js?v=2026111901"></script>
+<script src="js/prenotazione.js?v=2026111901"></script>
+<script src="js/bacheca.js?v=2026111901"></script>
+<script src="js/partite.js?v=2026111901"></script>
+<script src="js/soci.js?v=2026111901"></script>
+<script src="js/avvio.js?v=2026111901"></script>
+</body>
+</html>
