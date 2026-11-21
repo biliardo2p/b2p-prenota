@@ -61,7 +61,7 @@ Nel browser resta solo la sessione (gettone e gettone di rinnovo), **mai la pass
 - Modalità: con un'altra persona (nome scritto a mano, con suggerimenti dai soci; se coincide con un socio si collega
   alla sua scheda), da solo, **Cerco avversario**.
 - **Ospiti**: "Entra come ospite" crea un'utenza anonima che resta sul dispositivo (tablet della sala o telefono).
-  L'ospite vede i biliardi occupati senza nomi, prenota scrivendo i due nomi; la prenotazione occupa il biliardo
+  L'ospite vede le prenotazioni con i nomi dei giocatori, prenota scrivendo i due nomi; la prenotazione occupa il biliardo
   ma resta **da confermare** finché un amministratore non la conferma (scheda Admin). Per spegnere gli accessi da ospite
   basta disattivare il provider Anonimo nella console.
 - "Cerco avversario": max una richiesta aperta per socio; **scade 3 ore prima** dell'inizio e il biliardo si libera.
@@ -90,7 +90,7 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 - Le date sono chiavi testuali: le regole non possono verificare che la data della prenotazione coincida con l'orario,
   né che le mezz'ore occupate in `slot` corrispondano esattamente alla prenotazione (lo garantisce l'app).
-- Gli ospiti sono anonimi: chiunque abbia il link può prenotare (da confermare). Gli abusi si gestiscono annullando
+- Gli ospiti sono anonimi: chiunque abbia il link può prenotare (da confermare) e vedere i nomi di chi ha prenotato. Gli abusi si gestiscono annullando
   dalla scheda Admin o disattivando il provider Anonimo.
 - Nei giorni del cambio d'ora le aperture possono slittare di un'ora.
 - Un socio che ha detto "Gioco io" non può ritirarsi da solo: annulla il titolare o un amministratore.
@@ -98,6 +98,7 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-21 (3)** — Gli ospiti vedono i nomi dei giocatori: leggono `prenotazioni` come i soci (regole aggiornate da ripubblicare).
 - **2026-11-21 (2)** — Tolta la specialità di gioco da "Cerco avversario" (il campo `specialita` resta ammesso dalle regole per i dati già salvati).
 - **2026-11-21** — Repository rinominato in `biliardo2p/b2p-prenota`: nuovo indirizzo `biliardo2p.github.io/b2p-prenota/`.
 - **2026-11-19 (2)** — Orari 8–22 con aperture alle 21 della sera prima (mattino) e alle 9 (pomeriggio); vista oggi/domani;
