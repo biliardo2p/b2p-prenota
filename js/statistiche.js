@@ -189,7 +189,7 @@ function scaricaCSV(){
   const intest = ["data", "giorno", "biliardo", "inizio", "fine", "durata_min", "stato", "tipo", "titolare", "avversario"];
   const righe = ST.righe.map(x => [x.data, GIORNI_SETT[giornoSett(x.data)], x.tavolo, hhmm(x.min), hhmm(x.min + durataDi(x)),
     durataDi(x), x.stato, tipoDi(x), x.titolareNome, x.avversarioNome || ""].map(c).join(";"));
-  const blob = new Blob(["﻿" + [intest.join(";"), ...righe].join("\r\n")], {type: "text/csv;charset=utf-8"});
+  const blob = new Blob(["\ufeff" + [intest.join(";"), ...righe].join("\r\n")], {type: "text/csv;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `prenotazioni_${ST.per.da}_${ST.per.a}.csv`;
