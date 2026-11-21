@@ -80,7 +80,7 @@
             ".validate": "newData.isNumber()"
           },
           "ospite": {
-            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 60"
+            ".validate": "newData.isBoolean()"
           },
           "titolare": {
             ".validate": "newData.isString()"

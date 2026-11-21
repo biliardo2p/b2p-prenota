@@ -98,7 +98,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
-- **2026-11-21 (3)** — Gli ospiti vedono i nomi dei giocatori: leggono `prenotazioni` come i soci (regole aggiornate da ripubblicare).
+- **2026-11-21 (3)** — Gli ospiti vedono i nomi dei giocatori: leggono `prenotazioni` come i soci. Corretta la regola del campo
+  `ospite` ("Non è socio"), che rifiutava le prenotazioni con la spunta. Regole da ripubblicare.
 - **2026-11-21 (2)** — Tolta la specialità di gioco da "Cerco avversario" (il campo `specialita` resta ammesso dalle regole per i dati già salvati).
 - **2026-11-21** — Repository rinominato in `biliardo2p/b2p-prenota`: nuovo indirizzo `biliardo2p.github.io/b2p-prenota/`.
 - **2026-11-19 (2)** — Orari 8–22 con aperture alle 21 della sera prima (mattino) e alle 9 (pomeriggio); vista oggi/domani;
