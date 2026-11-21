@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Statistiche · Prenota 2P</title>
+<link rel="icon" href="img/logo.png">
+<meta name="theme-color" content="#070d18">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@600;700&display=swap">
+<link rel="stylesheet" href="css/prenota.css?v=2026112103">
+<link rel="stylesheet" href="css/statistiche.css?v=2026112103">
+</head>
+<body class="pagina-stat">
+<header class="testata">
+  <img src="img/logo-96.png" alt="" width="44" height="44">
+  <div class="titoli"><div class="titolo">Statistiche biliardi</div><div class="sotto" id="periodo-nome"></div></div>
+  <a class="sotto destra" href="./">← Torna all'app</a>
+</header>
+
+<main class="wrap largo">
+  <p id="negato" class="avviso chiuso" hidden>Questa pagina è riservata agli amministratori. <a href="./">Accedi dall'app</a> con un'utenza admin.</p>
+
+  <div id="stat" hidden>
+    <div class="comandi">
+      <div class="segmenti" role="group" aria-label="Periodo">
+        <button data-tipo="settimana">Settimana</button>
+        <button data-tipo="mese" class="attivo">Mese</button>
+        <button data-tipo="anno">Anno</button>
+      </div>
+      <div class="naviga">
+        <button class="btn piccolo" id="prec" aria-label="Periodo precedente">◀</button>
+        <b id="periodo-etichetta"></b>
+        <button class="btn piccolo" id="succ" aria-label="Periodo successivo">▶</button>
+      </div>
+      <button class="btn piccolo" id="csv">Scarica CSV (Excel)</button>
+    </div>
+    <p id="carico" class="meta">Carico i dati…</p>
+
+    <section class="tiles" id="tiles"></section>
+
+    <section class="carta">
+      <h2>Ore prenotate <span class="meta" id="andamento-unita"></span></h2>
+      <div id="andamento" class="barre"></div>
+    </section>
+
+    <div class="due">
+      <section class="carta">
+        <h2>Per biliardo</h2>
+        <div id="per-biliardo"></div>
+      </section>
+      <section class="carta">
+        <h2>Tipo di partita</h2>
+        <div id="per-tipo"></div>
+      </section>
+    </div>
+
+    <section class="carta">
+      <h2>Quando si gioca</h2>
+      <p class="meta">Occupazione media dei biliardi per giorno della settimana e ora: più il colore è acceso, più i biliardi sono occupati. Passa sopra una casella per il valore.</p>
+      <div id="mappa" class="mappa-box"></div>
+    </section>
+
+    <div class="due">
+      <section class="carta">
+        <h2>Cerco avversario</h2>
+        <div id="cerco"></div>
+      </section>
+      <section class="carta">
+        <h2>Soci più attivi</h2>
+        <div id="top"></div>
+      </section>
+    </div>
+    <p class="meta">Si contano le prenotazioni attive o confermate (incluse quelle da ospite da confermare); le annullate e le richieste
+      scadute sono indicate a parte. Le ore disponibili sono: biliardi × ore di apertura (8–24) × giorni del periodo fino a domani.</p>
+  </div>
+</main>
+<div id="suggerimento" role="tooltip" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/config.js?v=2026112103"></script>
+<script src="js/util.js?v=2026112103"></script>
+<script src="js/dati.js?v=2026112103"></script>
+<script src="js/statistiche.js?v=2026112103"></script>
+</body>
+</html>

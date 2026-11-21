@@ -48,8 +48,9 @@
       }
     },
     "prenotazioni": {
+      ".read": "(auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo' && root.child('soci/' + auth.uid + '/ruolo').val() == 'admin')",
       "$data": {
-        ".read": "((auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo') || (auth != null && auth.provider == 'anonymous'))",
+        ".read": "auth != null && root.child('soci/' + auth.uid + '/stato').val() == 'attivo'",
         ".validate": "$data.matches(/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/)",
         "$id": {
           ".read": "auth != null && data.child('titolare').val() == auth.uid",
@@ -81,6 +82,9 @@
           },
           "ospite": {
             ".validate": "newData.isBoolean()"
+          },
+          "daOspite": {
+            ".validate": "newData.isBoolean() && newData.val() == (auth.provider == 'anonymous')"
           },
           "titolare": {
             ".validate": "newData.isString()"

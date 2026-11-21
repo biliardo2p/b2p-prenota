@@ -113,22 +113,28 @@ function giorni(){
 }
 function ascoltaTutto(){
   giorni();
-  S.pren = {};
-  [S.oggi, S.domani].forEach(d => ascolta("pren-" + d, "prenotazioni/" + d, "", v => { S.pren[d] = v || {}; disegnaTutto(); }));
-  if(S.ospite) return;
+  S.pren = {}; S.slot = {};
+  if(S.ospite){
+    [S.oggi, S.domani].forEach(d => ascolta("slot-" + d, "slot/" + d, "", v => { S.slot[d] = v || {}; disegnaTutto(); }));
+    caricaMie();
+    return;
+  }
   ascolta("soci", "soci", "", v => {
     S.soci = v || {};
     const io = S.soci[S.uid];
     if(!io || io.stato !== "attivo"){ esci(); return; }
     S.io = io; disegnaProfilo(); disegnaTutto();
   });
+  [S.oggi, S.domani].forEach(d => ascolta("pren-" + d, "prenotazioni/" + d, "", v => { S.pren[d] = v || {}; disegnaTutto(); }));
   ascolta("partite", "partite", `&orderBy="giorno"&startAt="${S.oggi}"`, v => { S.partite = v || {}; disegnaTutto(); });
 }
 
 /* ogni 30 secondi: cambio di giorno, aperture delle 9 e delle 21, scadenze */
+let giri = 0;
 setInterval(() => {
   if(!S.io) return;
   if(adesso().data !== S.oggi){ chiudiAscolti(); ascoltaTutto(); return; }
+  if(S.ospite && ++giri % 4 === 0) caricaMie();
   disegnaTutto();
 }, 30000);
 

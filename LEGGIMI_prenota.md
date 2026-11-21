@@ -21,8 +21,10 @@ Ha in comune con loro solo lo stack (sito statico, JavaScript classico, Firebase
 ```
 index.html               pagina unica dell'app
 manuale.html             istruzioni per i soci
+statistiche.html         statistiche sull'uso dei biliardi (solo admin)
 manifest.webmanifest     app installabile "Prenota 2P" (scope /b2p-prenota/)
 css/prenota.css          colori e caratteri (come il Tabellone Live)
+css/statistiche.css      stile della pagina statistiche
 js/config.js             Firebase e impostazioni della sala (biliardi, orari, durata, scadenze)
 js/util.js               utilità, stato condiviso, orari nel fuso di Roma
 js/dati.js               login, lettura/scrittura e ascolto in tempo reale via REST
@@ -32,6 +34,7 @@ js/bacheca.js            chi cerca un avversario
 js/partite.js            partite programmate
 js/soci.js               profilo e gestione soci (admin)
 js/avvio.js              accesso, registrazione, schede, avvio
+js/statistiche.js        calcolo e grafici delle statistiche, esportazione CSV
 regole_database.json     regole di sicurezza del database
 img/                     logo e icone del circolo
 ```
@@ -46,7 +49,7 @@ Nel browser resta solo la sessione (gettone e gettone di rinnovo), **mai la pass
 |---|---|
 | `soci/<uid>` | `nome`, `livello` (principiante, intermedio, esperto), `stato` (attesa, attivo, sospeso), `ruolo` (socio, admin), `nuovoFinoAl` (AAAA-MM-GG, badge "nuovo socio"), `padrino` (vero/falso), `creato` |
 | `privati/<uid>` | `email` (la vedono solo il socio e gli amministratori) |
-| `prenotazioni/<AAAA-MM-GG>/<id>` | `tavolo`, `min` (minuti dalla mezzanotte), `durata` (minuti), `inizio`/`fine`/`apertura` (ms), `titolare`, `titolareNome`, `avversario` (uid, se socio), `avversarioNome` (anche scritto a mano), `ospite` (vero se l'avversario non è socio), `stato` (aperta, confermata, da_confermare, annullata, scaduta), `livello`, `nota`, `scade` (ms), `partita`, `creata` |
+| `prenotazioni/<AAAA-MM-GG>/<id>` | `tavolo`, `min` (minuti dalla mezzanotte), `durata` (minuti), `inizio`/`fine`/`apertura` (ms), `titolare`, `titolareNome`, `avversario` (uid, se socio), `avversarioNome` (anche scritto a mano), `ospite` (vero se l'avversario non è socio), `daOspite` (vero se prenotata da un'utenza ospite), `stato` (aperta, confermata, da_confermare, annullata, scaduta), `livello`, `nota`, `scade` (ms), `partita`, `creata` |
 | `slot/<AAAA-MM-GG>/<tavolo>/<HHMM>` | id della prenotazione che occupa quella mezz'ora: le regole permettono di scriverlo solo se è vuoto, così due prenotazioni non possono sovrapporsi |
 | `partite/<id>` | `giorno`, `min`, `proponente`, `proponenteNome`, `avversario`, `avversarioNome`, `stato` (aperta, proposta, accettata, rifiutata, prenotata, annullata), `nota`, `prenotazione`, `creata` |
 
@@ -61,7 +64,7 @@ Nel browser resta solo la sessione (gettone e gettone di rinnovo), **mai la pass
 - Modalità: con un'altra persona (nome scritto a mano, con suggerimenti dai soci; se coincide con un socio si collega
   alla sua scheda), da solo, **Cerco avversario**.
 - **Ospiti**: "Entra come ospite" crea un'utenza anonima che resta sul dispositivo (tablet della sala o telefono).
-  L'ospite vede le prenotazioni con i nomi dei giocatori, prenota scrivendo i due nomi; la prenotazione occupa il biliardo
+  L'ospite vede i biliardi occupati senza nomi (per invogliare a registrarsi), prenota scrivendo i due nomi; la prenotazione occupa il biliardo
   ma resta **da confermare** finché un amministratore non la conferma (scheda Admin). Per spegnere gli accessi da ospite
   basta disattivare il provider Anonimo nella console.
 - "Cerco avversario": max una richiesta aperta per socio; **scade 3 ore prima** dell'inizio e il biliardo si libera.
@@ -70,6 +73,11 @@ Nel browser resta solo la sessione (gettone e gettone di rinnovo), **mai la pass
 - Partite programmate: per i giorni successivi, non bloccano biliardi; il giorno stesso, dalle 9, "Prenota il biliardo".
 - Le regole del database controllano: socio abilitato oppure ospite, aperture (21/9), orario futuro, durata e fine,
   scadenza, nomi coerenti con la scheda socio, chi può fare cosa (titolare, altro socio, ospite, amministratore).
+- **Statistiche** (`statistiche.html`, dalla scheda Admin): settimana, mese o anno con frecce per scorrere i periodi;
+  ore prenotate e occupazione (biliardi × 16 ore di apertura × giorni fino a domani), prenotazioni, giocatori diversi,
+  annullate; andamento per giorno o per mese; ore per biliardo; tipo di partita; mappa giorni × ore; esito di
+  "Cerco avversario"; soci più attivi; esportazione CSV per Excel (separatore `;`). Gli admin leggono il nodo
+  `prenotazioni` per intervallo di date (`orderBy="$key"`).
 - Controllati solo dall'app (non dalle regole): una sola richiesta aperta per socio, niente due partite dello stesso socio
   nello stesso orario.
 
@@ -90,7 +98,7 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 - Le date sono chiavi testuali: le regole non possono verificare che la data della prenotazione coincida con l'orario,
   né che le mezz'ore occupate in `slot` corrispondano esattamente alla prenotazione (lo garantisce l'app).
-- Gli ospiti sono anonimi: chiunque abbia il link può prenotare (da confermare) e vedere i nomi di chi ha prenotato. Gli abusi si gestiscono annullando
+- Gli ospiti sono anonimi: chiunque abbia il link può prenotare (da confermare). Gli abusi si gestiscono annullando
   dalla scheda Admin o disattivando il provider Anonimo.
 - Nei giorni del cambio d'ora le aperture possono slittare di un'ora.
 - Un socio che ha detto "Gioco io" non può ritirarsi da solo: annulla il titolare o un amministratore.
@@ -98,8 +106,10 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
-- **2026-11-21 (3)** — Gli ospiti vedono i nomi dei giocatori: leggono `prenotazioni` come i soci. Corretta la regola del campo
-  `ospite` ("Non è socio"), che rifiutava le prenotazioni con la spunta. Regole da ripubblicare.
+- **2026-11-21 (4)** — Pagina **statistiche** per gli admin (settimana/mese/anno, grafici, CSV). Nuovo campo `daOspite`;
+  gli admin possono leggere tutte le prenotazioni. Regole da ripubblicare.
+- **2026-11-21 (3)** — Corretta la regola del campo `ospite` ("Non è socio"), che rifiutava le prenotazioni con la spunta.
+  Gli ospiti continuano a vedere i biliardi occupati senza nomi.
 - **2026-11-21 (2)** — Tolta la specialità di gioco da "Cerco avversario" (il campo `specialita` resta ammesso dalle regole per i dati già salvati).
 - **2026-11-21** — Repository rinominato in `biliardo2p/b2p-prenota`: nuovo indirizzo `biliardo2p.github.io/b2p-prenota/`.
 - **2026-11-19 (2)** — Orari 8–22 con aperture alle 21 della sera prima (mattino) e alle 9 (pomeriggio); vista oggi/domani;

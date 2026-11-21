@@ -6,7 +6,7 @@ const slotDi = (data, tavolo, min, durata) => {
   return k;
 };
 const percorso = (data, id) => "prenotazioni/" + data + "/" + id;
-const prenotazione = (data, id) => (S.pren[data] || {})[id];
+const prenotazione = (data, id) => S.ospite ? S.mie[id] : (S.pren[data] || {})[id];
 /* orari di una prenotazione a partire da data, biliardo, inizio e durata */
 function orari(s){
   const inizio = msRoma(s.data, s.min);
@@ -52,7 +52,7 @@ $("#form-prenota").addEventListener("submit", async e => {
   if(S.ospite){
     const nome = f.nomeOspite.value.trim().replace(/\s+/g, " ");
     if(nome.length < 2) return toast("Scrivi il tuo nome");
-    p.titolare = S.uid; p.titolareNome = nome.slice(0, 60); p.stato = "da_confermare";
+    p.titolare = S.uid; p.titolareNome = nome.slice(0, 60); p.stato = "da_confermare"; p.daOspite = true;
     if(!f.solo.checked){
       const avv = f.avversarioOspite.value.trim().replace(/\s+/g, " ");
       if(avv.length < 2) return toast("Scrivi il nome dell'avversario, oppure spunta «Gioco da solo»");
@@ -90,6 +90,7 @@ $("#form-prenota").addEventListener("submit", async e => {
     await dbWrite(w);
     $("#dlg-prenota").close();
     S.sel = null;
+    if(S.ospite){ ricordaMia(s.data, id); await caricaMie(); }
     disegnaGriglia();
     toast(S.ospite ? "Prenotazione inviata: il direttivo la confermerà" : p.stato === "aperta" ? "Richiesta pubblicata: compare in giallo" : "Prenotazione fatta!");
   }catch(err){
@@ -123,6 +124,7 @@ async function salvaModifica(){
   try{
     await dbWrite(w);
     S.sel = null;
+    if(S.ospite) await caricaMie();
     disegnaGriglia();
     toast("Prenotazione modificata");
   }catch(err){ toast(err.code === "PERMISSION_DENIED" ? "Modifica non riuscita: lo spazio potrebbe essere già occupato" : msgErrore(err)); }
@@ -180,6 +182,7 @@ $("#dettaglio-azioni").addEventListener("click", async e => {
       const w = {[k + "stato"]: "annullata"};
       slotDi(data, p.tavolo, p.min, durataDi(p)).forEach(x => w[x] = null);
       await dbWrite(w);
+      if(S.ospite) await caricaMie();
       toast("Prenotazione annullata");
     }
     $("#dlg-dettaglio").close();
@@ -196,4 +199,23 @@ function liberaScadute(){
     slotDi(data, p.tavolo, p.min, durataDi(p)).forEach(k => w[k] = null);
     dbWrite(w).catch(() => S.scadendo.delete(id));
   }));
+}
+
+/* ================= ospiti: le proprie prenotazioni ================= */
+const MKEY = KEY + "mie";
+function ricordaMia(data, id){
+  let l = [];
+  try{ l = JSON.parse(localStorage.getItem(MKEY) || "[]"); }catch(e){}
+  l.push({data, id});
+  try{ localStorage.setItem(MKEY, JSON.stringify(l.filter(x => x.data >= S.oggi))); }catch(e){}
+}
+async function caricaMie(){
+  let l = [];
+  try{ l = JSON.parse(localStorage.getItem(MKEY) || "[]").filter(x => x.data >= S.oggi); }catch(e){}
+  const mie = {};
+  await Promise.all(l.map(async x => {
+    try{ const p = await dbGet(percorso(x.data, x.id)); if(p && ATTIVE.includes(p.stato)) mie[x.id] = p; }catch(e){}
+  }));
+  S.mie = mie;
+  disegnaTutto();
 }

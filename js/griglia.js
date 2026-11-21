@@ -13,7 +13,20 @@ const prenotabile = (data, min) => Date.now() >= apreAlle(data, min) && msRoma(d
 
 /* prenotazioni che occupano i biliardi in un giorno (le richieste scadute non contano più) */
 function prenDi(data){
-  return Object.entries(S.pren[data] || {}).map(([id, p]) => ({id, ...p})).filter(p => ATTIVE.includes(p.stato) && !scaduta(p));
+  if(!S.ospite)
+    return Object.entries(S.pren[data] || {}).map(([id, p]) => ({id, ...p})).filter(p => ATTIVE.includes(p.stato) && !scaduta(p));
+  /* ospiti: dall'occupazione per mezz'ore, senza nomi; le proprie prenotazioni con i dettagli */
+  const lista = [];
+  Object.entries(S.slot[data] || {}).forEach(([t, ore]) => {
+    const per = {};
+    Object.entries(ore || {}).forEach(([k, id]) => { (per[id] = per[id] || []).push(minuti(k.slice(0, 2) + ":" + k.slice(2))); });
+    Object.entries(per).forEach(([id, mm]) => {
+      mm.sort((a, b) => a - b);
+      const mia = S.mie[id];
+      lista.push(mia ? {id, ...mia} : {id, tavolo: +t, min: mm[0], durata: mm.length * STEP(), stato: "occupato"});
+    });
+  });
+  return lista;
 }
 function occupato(lista, tavolo, da, a, escludi){
   return lista.some(p => p.id !== escludi && p.tavolo === tavolo && p.min < a && da < p.min + durataDi(p));
@@ -63,7 +76,8 @@ function disegnaGriglia(){
     if(S.sel && S.sel.id === p.id) return;   /* in modifica: la mostra la selezione */
     const mia = p.titolare === S.uid || p.avversario === S.uid, d = durataDi(p);
     let chi;
-    if(p.stato === "aperta") chi = `<b>${esc(p.titolareNome)}</b><br>cerca avversario`;
+    if(p.stato === "occupato") chi = "Occupato";
+    else if(p.stato === "aperta") chi = `<b>${esc(p.titolareNome)}</b><br>cerca avversario`;
     else chi = `<b>${esc(p.titolareNome)}</b><br>${esc(p.avversarioNome || "da solo")}${p.stato === "da_confermare" ? '<br><i>da confermare</i>' : ""}`;
     h += `<button class="pren ${p.stato}${mia ? " mia" : ""}" data-id="${p.id}"
       style="grid-row:${riga(p.min)} / span ${d / STEP()};grid-column:${p.tavolo + 1}">
@@ -82,6 +96,7 @@ $("#griglia").addEventListener("click", e => {
   const c = e.target.closest(".cella.libera");
   if(c) return nuovaSelezione(+c.dataset.t, +c.dataset.m);
   const p = e.target.closest(".pren");
+  if(p && p.classList.contains("occupato")) return toast("Biliardo già prenotato");
   if(p) apriDettaglio(S.giorno, p.dataset.id);
 });
 $$(".scegli-giorno button").forEach(b => b.addEventListener("click", () => {

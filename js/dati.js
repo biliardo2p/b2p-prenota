@@ -63,10 +63,10 @@ async function idToken(){
 const ORA_SERVER = {".sv": "timestamp"};
 function urlDb(path, token, extra = ""){ return FIREBASE.databaseURL + "/" + path + ".json?auth=" + encodeURIComponent(token) + extra; }
 
-async function dbGet(path){
+async function dbGet(path, filtro = ""){
   const t = await idToken();
   let r;
-  try{ r = await fetch(urlDb(path, t)); }catch(e){ throw {code: "rete"}; }
+  try{ r = await fetch(urlDb(path, t, filtro)); }catch(e){ throw {code: "rete"}; }
   if(r.status === 401 || r.status === 403) throw {code: "PERMISSION_DENIED"};
   if(!r.ok) throw {code: "http " + r.status};
   return r.json();
