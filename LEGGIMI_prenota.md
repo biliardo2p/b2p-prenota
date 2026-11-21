@@ -1,7 +1,7 @@
 # Prenota 2P · LEGGIMI
 
 App web per prenotare i biliardi dell'**ASD Biliardo Seconda Passione**.
-Indirizzo: **https://biliardo2p.github.io/prenota/** — repository `biliardo2p/prenota` — copia sul PC in `OneDrive\Biliardo\Prenota\`.
+Indirizzo: **https://biliardo2p.github.io/b2p-prenota/** — repository `biliardo2p/b2p-prenota` — copia sul PC in `OneDrive\Biliardo\Prenota\`.
 
 È un applicativo **separato** dal Tabellone Live e dal Gestionale ASD: progetto Firebase, repository e cartella propri.
 Ha in comune con loro solo lo stack (sito statico, JavaScript classico, Firebase via REST).
@@ -21,7 +21,7 @@ Ha in comune con loro solo lo stack (sito statico, JavaScript classico, Firebase
 ```
 index.html               pagina unica dell'app
 manuale.html             istruzioni per i soci
-manifest.webmanifest     app installabile "Prenota 2P" (scope /prenota/)
+manifest.webmanifest     app installabile "Prenota 2P" (scope /b2p-prenota/)
 css/prenota.css          colori e caratteri (come il Tabellone Live)
 js/config.js             Firebase e impostazioni della sala (biliardi, orari, durata, scadenze)
 js/util.js               utilità, stato condiviso, orari nel fuso di Roma
@@ -98,6 +98,7 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-21** — Repository rinominato in `biliardo2p/b2p-prenota`: nuovo indirizzo `biliardo2p.github.io/b2p-prenota/`.
 - **2026-11-19 (2)** — Orari 8–22 con aperture alle 21 della sera prima (mattino) e alle 9 (pomeriggio); vista oggi/domani;
   durata variabile 30 min – 4 h con trascinamento e pulsanti; modifica dal titolare; avversario a testo libero;
   accesso da ospite con prenotazioni da confermare.
