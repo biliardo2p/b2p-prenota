@@ -32,7 +32,6 @@ const SALA = {
   scadenzaOre: 3,               /* "Cerco avversario" scade 3 ore prima dell'inizio */
   giorniNuovo: 60               /* badge "nuovo socio" per 60 giorni dall'approvazione */
 };
-const SPECIALITA = ["Qualsiasi", "5 Birilli", "Italiana", "Goriziana"];
 const LIVELLI = ["principiante", "intermedio", "esperto"];
 
 /* prefisso delle chiavi salvate nel browser: il dominio è lo stesso del Tabellone Live */

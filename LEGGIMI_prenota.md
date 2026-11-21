@@ -46,7 +46,7 @@ Nel browser resta solo la sessione (gettone e gettone di rinnovo), **mai la pass
 |---|---|
 | `soci/<uid>` | `nome`, `livello` (principiante, intermedio, esperto), `stato` (attesa, attivo, sospeso), `ruolo` (socio, admin), `nuovoFinoAl` (AAAA-MM-GG, badge "nuovo socio"), `padrino` (vero/falso), `creato` |
 | `privati/<uid>` | `email` (la vedono solo il socio e gli amministratori) |
-| `prenotazioni/<AAAA-MM-GG>/<id>` | `tavolo`, `min` (minuti dalla mezzanotte), `durata` (minuti), `inizio`/`fine`/`apertura` (ms), `titolare`, `titolareNome`, `avversario` (uid, se socio), `avversarioNome` (anche scritto a mano), `ospite` (vero se l'avversario non è socio), `stato` (aperta, confermata, da_confermare, annullata, scaduta), `specialita`, `livello`, `nota`, `scade` (ms), `partita`, `creata` |
+| `prenotazioni/<AAAA-MM-GG>/<id>` | `tavolo`, `min` (minuti dalla mezzanotte), `durata` (minuti), `inizio`/`fine`/`apertura` (ms), `titolare`, `titolareNome`, `avversario` (uid, se socio), `avversarioNome` (anche scritto a mano), `ospite` (vero se l'avversario non è socio), `stato` (aperta, confermata, da_confermare, annullata, scaduta), `livello`, `nota`, `scade` (ms), `partita`, `creata` |
 | `slot/<AAAA-MM-GG>/<tavolo>/<HHMM>` | id della prenotazione che occupa quella mezz'ora: le regole permettono di scriverlo solo se è vuoto, così due prenotazioni non possono sovrapporsi |
 | `partite/<id>` | `giorno`, `min`, `proponente`, `proponenteNome`, `avversario`, `avversarioNome`, `stato` (aperta, proposta, accettata, rifiutata, prenotata, annullata), `nota`, `prenotazione`, `creata` |
 
@@ -98,6 +98,7 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-21 (2)** — Tolta la specialità di gioco da "Cerco avversario" (il campo `specialita` resta ammesso dalle regole per i dati già salvati).
 - **2026-11-21** — Repository rinominato in `biliardo2p/b2p-prenota`: nuovo indirizzo `biliardo2p.github.io/b2p-prenota/`.
 - **2026-11-19 (2)** — Orari 8–22 con aperture alle 21 della sera prima (mattino) e alle 9 (pomeriggio); vista oggi/domani;
   durata variabile 30 min – 4 h con trascinamento e pulsanti; modifica dal titolare; avversario a testo libero;

@@ -10,7 +10,7 @@ function disegnaBacheca(){
     <li class="scheda">
       <div class="grande"><b>${nomeGiorno(p.data) === "oggi" ? "Oggi" : "Domani"} ${fascia(p.min, durataDi(p))}</b> · Biliardo ${p.tavolo}</div>
       <div><b>${esc(p.titolareNome)}</b>${badgeNuovo(p.titolare)}</div>
-      <div class="meta">${esc(p.specialita)} · livello ${esc(p.livello)}</div>
+      <div class="meta">livello ${esc(p.livello)}</div>
       ${p.nota ? `<div class="nota">«${esc(p.nota)}»</div>` : ""}
       ${p.titolare === S.uid
         ? `<button class="btn" data-id="${p.id}" data-data="${p.data}">È la tua richiesta</button>`

@@ -29,7 +29,6 @@ function apriPrenota(){
   if(!S.ospite){
     $("#elenco-soci").innerHTML = Object.entries(S.soci).filter(([id, x]) => id !== S.uid && x.stato === "attivo")
       .map(([, x]) => `<option value="${esc(x.nome)}">`).join("");
-    f.specialita.innerHTML = SPECIALITA.map(x => `<option>${esc(x)}</option>`).join("");
     f.livello.innerHTML = LIVELLI.map(l => `<option ${l === S.io.livello ? "selected" : ""}>${l}</option>`).join("");
     if(s.avversario) f.avversario.value = nomeDi(s.avversario);
   }
@@ -75,7 +74,7 @@ $("#form-prenota").addEventListener("submit", async e => {
     }
     if(modo === "cerca"){
       if(lista.some(x => x.titolare === S.uid && x.stato === "aperta")) return toast("Hai già una richiesta «Cerco avversario» aperta");
-      p.stato = "aperta"; p.specialita = f.specialita.value; p.livello = f.livello.value;
+      p.stato = "aperta"; p.livello = f.livello.value;
       if(f.nota.value.trim()) p.nota = f.nota.value.trim().slice(0, 120);
       p.scade = p.inizio - SALA.scadenzaOre * 3600000;
       if(p.scade <= Date.now()) return toast(`Troppo tardi per cercare un avversario: serve almeno ${SALA.scadenzaOre} ore di anticipo`);
@@ -138,7 +137,7 @@ function apriDettaglio(data, id){
   const mio = p.titolare === S.uid, d = durataDi(p), iniziata = p.inizio <= Date.now();
   let h = `<h3>Biliardo ${p.tavolo} · ${nomeGiorno(data)} ${fascia(p.min, d)}</h3><p><b>${esc(p.titolareNome)}</b>${S.ospite ? "" : badgeNuovo(p.titolare)}`;
   if(p.stato === "aperta"){
-    h += ` cerca un avversario.</p><p class="meta">${esc(p.specialita)} · livello ${esc(p.livello)}<br>
+    h += ` cerca un avversario.</p><p class="meta">Livello ${esc(p.livello)}<br>
       Se nessuno si aggiunge, alle ${hhmm((p.min - SALA.scadenzaOre * 60 + 1440) % 1440)} il biliardo si libera.</p>`;
     if(p.nota) h += `<p class="nota">«${esc(p.nota)}»</p>`;
   }else{
