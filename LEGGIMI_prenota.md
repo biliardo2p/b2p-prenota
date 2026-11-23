@@ -117,6 +117,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-23 (4)** — Alla riapertura degli ascolti (finestra di nuovo in vista) la griglia mantiene i dati già mostrati
+  invece di svuotarsi. Nota: Chrome su Windows considera «nascosta» anche una finestra coperta da altre.
 - **2026-11-23 (3)** — Riserva: se la connessione in tempo reale non parte entro 12 s, le prenotazioni si rileggono ogni
   15 s (prima la griglia restava vuota). Regole invariate.
 - **2026-11-23 (2)** — Un solo ascolto in tempo reale per scheda (prima 4): con due schede o finestre aperte le connessioni

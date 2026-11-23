@@ -118,7 +118,7 @@ function giorni(){
 const ULTIMI_DUE = '&orderBy="$key"&limitToLast=2';
 function ascoltaTutto(){
   giorni();
-  S.pren = {}; S.slot = {};
+  /* i dati già mostrati restano finché arrivano quelli nuovi: niente griglia vuota quando la finestra torna in vista */
   if(S.ospite){
     ascoltaORileggi("slot", "slot", ULTIMI_DUE, v => { v = v || {}; S.slot = {[S.oggi]: v[S.oggi] || {}, [S.domani]: v[S.domani] || {}}; disegnaTutto(); });
     caricaMie();
