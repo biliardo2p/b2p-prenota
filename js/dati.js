@@ -160,6 +160,8 @@ function rileggi(nome, percorso, filtro, cb, ms){
 function ascoltaORileggi(nome, percorso, filtro, cb){
   ascolta(nome, percorso, filtro, cb);
   const st = ascolti.get(nome);
+  /* lettura immediata: la griglia compare subito anche se l'ascolto tarda a partire */
+  dbGet(percorso, filtro || "").then(v => { if(ascolti.get(nome) === st && !st.chiuso && !st.ricevuto) cb(v); }).catch(() => {});
   setTimeout(() => {
     if(ascolti.get(nome) !== st || st.chiuso || st.ricevuto) return;
     rileggi(nome, percorso, filtro, cb, 15000);

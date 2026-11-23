@@ -117,6 +117,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-23 (5)** — Lettura immediata delle prenotazioni all'apertura, in parallelo all'ascolto: la griglia compare
+  subito anche quando l'ascolto tarda a partire.
 - **2026-11-23 (4)** — Alla riapertura degli ascolti (finestra di nuovo in vista) la griglia mantiene i dati già mostrati
   invece di svuotarsi. Nota: Chrome su Windows considera «nascosta» anche una finestra coperta da altre.
 - **2026-11-23 (3)** — Riserva: se la connessione in tempo reale non parte entro 12 s, le prenotazioni si rileggono ogni
