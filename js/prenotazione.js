@@ -94,7 +94,11 @@ $("#form-prenota").addEventListener("submit", async e => {
     disegnaGriglia();
     toast(S.ospite ? "Prenotazione inviata: il direttivo la confermerà" : p.stato === "aperta" ? "Richiesta pubblicata: compare in giallo" : "Prenotazione fatta!");
   }catch(err){
-    toast(err.code === "PERMISSION_DENIED" ? "Non è stato possibile prenotare: lo spazio potrebbe essere già occupato" : msgErrore(err));
+    if(err.code === "lento"){
+      /* la prenotazione potrebbe essere arrivata lo stesso: si ricarica la situazione e si controlla */
+      $("#dlg-prenota").close(); S.sel = null; ricaricaSituazione();
+      toast("Il server ha risposto in ritardo: ho ricaricato la situazione, controlla se la prenotazione risulta fatta");
+    }else toast(err.code === "PERMISSION_DENIED" ? "Non è stato possibile prenotare: lo spazio potrebbe essere già occupato" : msgErrore(err));
   }finally{ btn.disabled = false; }
 });
 
@@ -127,7 +131,10 @@ async function salvaModifica(){
     if(S.ospite) await caricaMie();
     disegnaGriglia();
     toast("Prenotazione modificata");
-  }catch(err){ toast(err.code === "PERMISSION_DENIED" ? "Modifica non riuscita: lo spazio potrebbe essere già occupato" : msgErrore(err)); }
+  }catch(err){
+    if(err.code === "lento"){ S.sel = null; ricaricaSituazione(); toast("Il server ha risposto in ritardo: ho ricaricato la situazione, controlla se la modifica risulta fatta"); }
+    else toast(err.code === "PERMISSION_DENIED" ? "Modifica non riuscita: lo spazio potrebbe essere già occupato" : msgErrore(err));
+  }
 }
 
 /* ================= dettaglio ================= */
@@ -186,8 +193,13 @@ $("#dettaglio-azioni").addEventListener("click", async e => {
       toast("Prenotazione annullata");
     }
     $("#dlg-dettaglio").close();
-  }catch(err){ toast(msgErrore(err)); }
+  }catch(err){
+    if(err.code === "lento"){ $("#dlg-dettaglio").close(); ricaricaSituazione(); }
+    toast(msgErrore(err));
+  }
 });
+/* riapre gli ascolti in tempo reale (dopo una richiesta rimasta senza risposta) */
+function ricaricaSituazione(){ chiudiAscolti(); ascoltaTutto(); }
 
 /* Le richieste "Cerco avversario" scadute liberano il biliardo: lo fa il primo socio che ha l'app aperta. */
 function liberaScadute(){

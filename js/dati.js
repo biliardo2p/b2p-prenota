@@ -104,15 +104,20 @@ function impostaIn(albero, percorso, valore){
 /* ascolta(nome, percorso, filtro, cb): cb(valore) a ogni cambiamento; filtro es. '&orderBy="giorno"&startAt="2026-11-19"' */
 function ascolta(nome, percorso, filtro, cb){
   smettiAscolto(nome);
-  const st = {es: null, valore: null, chiuso: false};
+  const st = {es: null, valore: null, chiuso: false, ultimo: Date.now(), apri: null};
   ascolti.set(nome, st);
   const apri = async () => {
     if(st.chiuso) return;
     let t;
     try{ t = await idToken(); }catch(e){ return; }
+    if(st.chiuso) return;
+    if(st.es) st.es.close();
     const es = new EventSource(urlDb(percorso, t, filtro || ""));
     st.es = es;
+    st.ultimo = Date.now();
+    es.addEventListener("keep-alive", () => { st.ultimo = Date.now(); });
     const applica = (ev, unisci) => {
+      st.ultimo = Date.now();
       let d; try{ d = JSON.parse(ev.data); }catch(e){ return; }
       if(!d) return;
       if(unisci) Object.entries(d.data || {}).forEach(([k, v]) => { st.valore = impostaIn(st.valore, d.path + "/" + k, v); });
@@ -125,7 +130,12 @@ function ascolta(nome, percorso, filtro, cb){
     es.addEventListener("auth_revoked", () => { es.close(); setTimeout(apri, 500); });
     es.addEventListener("cancel", () => { es.close(); });
   };
+  st.apri = apri;
   apri();
 }
+/* il server manda un segnale almeno ogni 30 secondi: un ascolto muto da più di 70 secondi si riapre */
+setInterval(() => {
+  ascolti.forEach(st => { if(!st.chiuso && st.apri && Date.now() - st.ultimo > 70000){ st.ultimo = Date.now(); st.apri(); } });
+}, 20000);
 function smettiAscolto(nome){ const st = ascolti.get(nome); if(st){ st.chiuso = true; if(st.es) st.es.close(); ascolti.delete(nome); } }
 function chiudiAscolti(){ [...ascolti.keys()].forEach(smettiAscolto); }

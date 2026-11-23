@@ -47,6 +47,9 @@ Connessioni: il Realtime Database via REST usa connessioni HTTP/1.1 e il browser
 lo stesso indirizzo. Ogni scheda tiene aperti 4 ascolti (soci, prenotazioni di oggi e di domani, partite): per questo una
 scheda non in primo piano chiude i suoi ascolti e li riapre quando torna visibile, e ogni richiesta ha un tempo massimo
 (20 s per le scritture, 40 s per le letture) oltre il quale l'app mostra un messaggio invece di restare bloccata.
+Se una scrittura va oltre il tempo massimo (ma potrebbe essere arrivata), l'app chiude la finestra e riapre gli ascolti
+per mostrare la situazione reale. Il server manda un segnale ("keep-alive") almeno ogni 30 secondi: un ascolto che resta
+muto per più di 70 secondi viene riaperto da solo.
 
 ## Struttura dei dati
 
@@ -112,7 +115,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 ## Storia delle versioni
 
 - **2026-11-23** — Corretto il blocco delle prenotazioni con l'app aperta in più schede (pulsante «Prenota» che restava
-  disattivato): ascolti chiusi nelle schede in secondo piano e tempo massimo sulle richieste.
+  disattivato e griglia non aggiornata): ascolti chiusi nelle schede in secondo piano, tempo massimo sulle richieste
+  con ricaricamento della situazione, riapertura automatica degli ascolti muti.
 - **2026-11-21 (4)** — Pagina **statistiche** per gli admin (settimana/mese/anno, grafici, CSV). Nuovo campo `daOspite`;
   gli admin possono leggere tutte le prenotazioni. Regole da ripubblicare.
 - **2026-11-21 (3)** — Corretta la regola del campo `ospite` ("Non è socio"), che rifiutava le prenotazioni con la spunta.
