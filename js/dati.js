@@ -18,17 +18,24 @@ const ERRORI = {
   USER_DISABLED: "Utenza disattivata: contatta il direttivo",
   TOO_MANY_ATTEMPTS_TRY_LATER: "Troppi tentativi: riprova tra qualche minuto",
   PERMISSION_DENIED: "Operazione non permessa",
-  rete: "Connessione assente: riprova"
+  rete: "Connessione assente: riprova",
+  lento: "Il server non risponde: controlla la connessione e riprova (se hai l'app aperta in più schede, chiudi le altre)"
 };
 const msgErrore = e => { const c = String((e && e.code) || e || ""); return ERRORI[c.split(" ")[0].replace(/:$/, "")] || ("Errore: " + c); };
 
+/* fetch con tempo massimo: una richiesta che non risponde non blocca più l'app */
+async function chiama(url, opz = {}, ms = 20000){
+  const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
+  try{ return await fetch(url, {...opz, signal: c.signal}); }
+  catch(e){ throw {code: e && e.name === "AbortError" ? "lento" : "rete"}; }
+  finally{ clearTimeout(t); }
+}
+
 async function chiamaAuth(metodo, corpo){
   let r, j;
-  try{
-    r = await fetch("https://identitytoolkit.googleapis.com/v1/accounts:" + metodo + "?key=" + FIREBASE.apiKey,
-      {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)});
-    j = await r.json();
-  }catch(e){ throw {code: "rete"}; }
+  r = await chiama("https://identitytoolkit.googleapis.com/v1/accounts:" + metodo + "?key=" + FIREBASE.apiKey,
+    {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)});
+  try{ j = await r.json(); }catch(e){ throw {code: "rete"}; }
   if(!r.ok) throw {code: (j && j.error && j.error.message) || ("http " + r.status)};
   return j;
 }
@@ -47,12 +54,10 @@ async function idToken(){
   if(!session) throw {code: "PERMISSION_DENIED"};
   if(Date.now() < session.exp) return session.idToken;
   let r, j;
-  try{
-    r = await fetch("https://securetoken.googleapis.com/v1/token?key=" + FIREBASE.apiKey,
-      {method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"},
-       body: "grant_type=refresh_token&refresh_token=" + encodeURIComponent(session.refreshToken)});
-    j = await r.json();
-  }catch(e){ throw {code: "rete"}; }
+  r = await chiama("https://securetoken.googleapis.com/v1/token?key=" + FIREBASE.apiKey,
+    {method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"},
+     body: "grant_type=refresh_token&refresh_token=" + encodeURIComponent(session.refreshToken)});
+  try{ j = await r.json(); }catch(e){ throw {code: "rete"}; }
   if(!r.ok){ session = null; salvaSessione(); throw {code: "sessione scaduta: rientra"}; }
   session.idToken = j.id_token; session.refreshToken = j.refresh_token;
   session.exp = Date.now() + (+j.expires_in - 120) * 1000; salvaSessione();
@@ -66,7 +71,7 @@ function urlDb(path, token, extra = ""){ return FIREBASE.databaseURL + "/" + pat
 async function dbGet(path, filtro = ""){
   const t = await idToken();
   let r;
-  try{ r = await fetch(urlDb(path, t, filtro)); }catch(e){ throw {code: "rete"}; }
+  r = await chiama(urlDb(path, t, filtro), {}, 40000);
   if(r.status === 401 || r.status === 403) throw {code: "PERMISSION_DENIED"};
   if(!r.ok) throw {code: "http " + r.status};
   return r.json();
@@ -75,7 +80,7 @@ async function dbGet(path, filtro = ""){
 async function dbWrite(obj){
   const t = await idToken();
   let r;
-  try{ r = await fetch(urlDb("", t), {method: "PATCH", body: JSON.stringify(obj)}); }catch(e){ throw {code: "rete"}; }
+  r = await chiama(urlDb("", t), {method: "PATCH", body: JSON.stringify(obj)});
   if(r.status === 401 || r.status === 403) throw {code: "PERMISSION_DENIED"};
   if(!r.ok) throw {code: "http " + r.status};
 }

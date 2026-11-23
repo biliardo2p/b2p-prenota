@@ -129,6 +129,14 @@ function ascoltaTutto(){
   ascolta("partite", "partite", `&orderBy="giorno"&startAt="${S.oggi}"`, v => { S.partite = v || {}; disegnaTutto(); });
 }
 
+/* Una scheda non in primo piano chiude i suoi ascolti: il browser permette poche connessioni
+   contemporanee verso lo stesso indirizzo e con più schede aperte le prenotazioni restavano in coda. */
+document.addEventListener("visibilitychange", () => {
+  if(!S.io) return;
+  if(document.hidden) chiudiAscolti();
+  else ascoltaTutto();
+});
+
 /* ogni 30 secondi: cambio di giorno, aperture delle 9 e delle 21, scadenze */
 let giri = 0;
 setInterval(() => {

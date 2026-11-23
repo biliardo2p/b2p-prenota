@@ -43,6 +43,11 @@ Gli script sono classici (non moduli) e si caricano in ordine; ogni link a js/cs
 da aumentare a ogni modifica. Le chiavi salvate nel browser hanno prefisso `b2pp_` (il dominio è lo stesso del Tabellone).
 Nel browser resta solo la sessione (gettone e gettone di rinnovo), **mai la password**.
 
+Connessioni: il Realtime Database via REST usa connessioni HTTP/1.1 e il browser ne permette circa 6 contemporanee verso
+lo stesso indirizzo. Ogni scheda tiene aperti 4 ascolti (soci, prenotazioni di oggi e di domani, partite): per questo una
+scheda non in primo piano chiude i suoi ascolti e li riapre quando torna visibile, e ogni richiesta ha un tempo massimo
+(20 s per le scritture, 40 s per le letture) oltre il quale l'app mostra un messaggio invece di restare bloccata.
+
 ## Struttura dei dati
 
 | Nodo | Contenuto |
@@ -106,6 +111,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-23** — Corretto il blocco delle prenotazioni con l'app aperta in più schede (pulsante «Prenota» che restava
+  disattivato): ascolti chiusi nelle schede in secondo piano e tempo massimo sulle richieste.
 - **2026-11-21 (4)** — Pagina **statistiche** per gli admin (settimana/mese/anno, grafici, CSV). Nuovo campo `daOspite`;
   gli admin possono leggere tutte le prenotazioni. Regole da ripubblicare.
 - **2026-11-21 (3)** — Corretta la regola del campo `ospite` ("Non è socio"), che rifiutava le prenotazioni con la spunta.
