@@ -44,12 +44,13 @@ da aumentare a ogni modifica. Le chiavi salvate nel browser hanno prefisso `b2pp
 Nel browser resta solo la sessione (gettone e gettone di rinnovo), **mai la password**.
 
 Connessioni: il Realtime Database via REST usa connessioni HTTP/1.1 e il browser ne permette circa 6 contemporanee verso
-lo stesso indirizzo. Ogni scheda tiene aperti 4 ascolti (soci, prenotazioni di oggi e di domani, partite): per questo una
-scheda non in primo piano chiude i suoi ascolti e li riapre quando torna visibile, e ogni richiesta ha un tempo massimo
-(20 s per le scritture, 40 s per le letture) oltre il quale l'app mostra un messaggio invece di restare bloccata.
-Se una scrittura va oltre il tempo massimo (ma potrebbe essere arrivata), l'app chiude la finestra e riapre gli ascolti
-per mostrare la situazione reale. Il server manda un segnale ("keep-alive") almeno ogni 30 secondi: un ascolto che resta
-muto per più di 70 secondi viene riaperto da solo.
+lo stesso indirizzo, sommando tutte le schede e finestre. Per questo ogni scheda tiene aperto **un solo ascolto**:
+le prenotazioni (per gli ospiti le caselle `slot`) delle ultime due giornate, con la query
+`orderBy="$key"&limitToLast=2` (le regole permettono la lettura di `prenotazioni` e `slot` solo con questa query, oltre
+all'amministratore). Soci e partite cambiano di rado: si rileggono ogni 30 secondi e subito dopo ogni scrittura.
+Una scheda non in primo piano chiude tutto e riapre quando torna visibile; ogni richiesta ha un tempo massimo
+(20 s per le scritture, 40 s per le letture) oltre il quale l'app mostra un messaggio invece di restare bloccata, chiude
+la finestra e ricarica la situazione. Un ascolto muto per più di 70 secondi viene riaperto da solo.
 
 ## Struttura dei dati
 
@@ -114,6 +115,9 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-23 (2)** — Un solo ascolto in tempo reale per scheda (prima 4): con due schede o finestre aperte le connessioni
+  finivano e le prenotazioni non partivano. Soci e partite si rileggono ogni 30 s. **Regole cambiate** (lettura di
+  `prenotazioni` e `slot` con `limitToLast=2`).
 - **2026-11-23** — Corretto il blocco delle prenotazioni con l'app aperta in più schede (pulsante «Prenota» che restava
   disattivato e griglia non aggiornata): ascolti chiusi nelle schede in secondo piano, tempo massimo sulle richieste
   con ricaricamento della situazione, riapertura automatica degli ascolti muti.

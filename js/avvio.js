@@ -111,22 +111,26 @@ function giorni(){
   $("#giorno-oggi").dataset.giorno = S.oggi;
   $("#giorno-domani").dataset.giorno = S.domani;
 }
+/* Una sola connessione in tempo reale per scheda (prenotazioni, o caselle per gli ospiti, di oggi e domani):
+   il browser ne concede poche verso lo stesso indirizzo e oltre quel numero le prenotazioni restavano in coda.
+   Soci e partite cambiano di rado: si rileggono ogni 30 secondi e subito dopo ogni scrittura. */
+const ULTIMI_DUE = '&orderBy="$key"&limitToLast=2';
 function ascoltaTutto(){
   giorni();
   S.pren = {}; S.slot = {};
   if(S.ospite){
-    [S.oggi, S.domani].forEach(d => ascolta("slot-" + d, "slot/" + d, "", v => { S.slot[d] = v || {}; disegnaTutto(); }));
+    ascolta("slot", "slot", ULTIMI_DUE, v => { v = v || {}; S.slot = {[S.oggi]: v[S.oggi] || {}, [S.domani]: v[S.domani] || {}}; disegnaTutto(); });
     caricaMie();
     return;
   }
-  ascolta("soci", "soci", "", v => {
+  rileggi("soci", "soci", "", v => {
     S.soci = v || {};
     const io = S.soci[S.uid];
     if(!io || io.stato !== "attivo"){ esci(); return; }
     S.io = io; disegnaProfilo(); disegnaTutto();
-  });
-  [S.oggi, S.domani].forEach(d => ascolta("pren-" + d, "prenotazioni/" + d, "", v => { S.pren[d] = v || {}; disegnaTutto(); }));
-  ascolta("partite", "partite", `&orderBy="giorno"&startAt="${S.oggi}"`, v => { S.partite = v || {}; disegnaTutto(); });
+  }, 30000);
+  ascolta("pren", "prenotazioni", ULTIMI_DUE, v => { v = v || {}; S.pren = {[S.oggi]: v[S.oggi] || {}, [S.domani]: v[S.domani] || {}}; disegnaTutto(); });
+  rileggi("partite", "partite", `&orderBy="giorno"&startAt="${S.oggi}"`, v => { S.partite = v || {}; disegnaTutto(); }, 30000);
 }
 
 /* Una scheda non in primo piano chiude i suoi ascolti: il browser permette poche connessioni

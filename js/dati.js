@@ -83,6 +83,8 @@ async function dbWrite(obj){
   r = await chiama(urlDb("", t), {method: "PATCH", body: JSON.stringify(obj)});
   if(r.status === 401 || r.status === 403) throw {code: "PERMISSION_DENIED"};
   if(!r.ok) throw {code: "http " + r.status};
+  /* dopo ogni scrittura riuscita si rileggono subito i dati letti a intervalli */
+  ascolti.forEach(st => { if(st.subito) st.subito(); });
 }
 function nuovoId(){
   const a = new Uint8Array(6); crypto.getRandomValues(a);
@@ -137,5 +139,21 @@ function ascolta(nome, percorso, filtro, cb){
 setInterval(() => {
   ascolti.forEach(st => { if(!st.chiuso && st.apri && Date.now() - st.ultimo > 70000){ st.ultimo = Date.now(); st.apri(); } });
 }, 20000);
-function smettiAscolto(nome){ const st = ascolti.get(nome); if(st){ st.chiuso = true; if(st.es) st.es.close(); ascolti.delete(nome); } }
+/* rileggi(nome, percorso, filtro, cb, ms): dati che cambiano di rado, letti all'avvio e poi ogni ms
+   (non tengono occupata una connessione come gli ascolti) */
+function rileggi(nome, percorso, filtro, cb, ms){
+  smettiAscolto(nome);
+  const st = {es: null, chiuso: false, ultimo: Date.now(), apri: null, timer: null, inCorso: false};
+  ascolti.set(nome, st);
+  const leggi = async () => {
+    if(st.chiuso || st.inCorso) return;
+    st.inCorso = true;
+    try{ const v = await dbGet(percorso, filtro || ""); if(!st.chiuso) cb(v); }catch(e){}
+    st.inCorso = false;
+  };
+  st.subito = leggi;
+  st.timer = setInterval(leggi, ms);
+  leggi();
+}
+function smettiAscolto(nome){ const st = ascolti.get(nome); if(st){ st.chiuso = true; if(st.es) st.es.close(); if(st.timer) clearInterval(st.timer); ascolti.delete(nome); } }
 function chiudiAscolti(){ [...ascolti.keys()].forEach(smettiAscolto); }
