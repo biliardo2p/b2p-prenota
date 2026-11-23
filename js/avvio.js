@@ -113,13 +113,14 @@ function giorni(){
 }
 /* Una sola connessione in tempo reale per scheda (prenotazioni, o caselle per gli ospiti, di oggi e domani):
    il browser ne concede poche verso lo stesso indirizzo e oltre quel numero le prenotazioni restavano in coda.
-   Soci e partite cambiano di rado: si rileggono ogni 30 secondi e subito dopo ogni scrittura. */
+   Soci e partite cambiano di rado: si rileggono ogni 30 secondi e subito dopo ogni scrittura.
+   Se la connessione in tempo reale non parte entro 12 secondi, anche le prenotazioni si rileggono (ogni 15 s). */
 const ULTIMI_DUE = '&orderBy="$key"&limitToLast=2';
 function ascoltaTutto(){
   giorni();
   S.pren = {}; S.slot = {};
   if(S.ospite){
-    ascolta("slot", "slot", ULTIMI_DUE, v => { v = v || {}; S.slot = {[S.oggi]: v[S.oggi] || {}, [S.domani]: v[S.domani] || {}}; disegnaTutto(); });
+    ascoltaORileggi("slot", "slot", ULTIMI_DUE, v => { v = v || {}; S.slot = {[S.oggi]: v[S.oggi] || {}, [S.domani]: v[S.domani] || {}}; disegnaTutto(); });
     caricaMie();
     return;
   }
@@ -129,7 +130,7 @@ function ascoltaTutto(){
     if(!io || io.stato !== "attivo"){ esci(); return; }
     S.io = io; disegnaProfilo(); disegnaTutto();
   }, 30000);
-  ascolta("pren", "prenotazioni", ULTIMI_DUE, v => { v = v || {}; S.pren = {[S.oggi]: v[S.oggi] || {}, [S.domani]: v[S.domani] || {}}; disegnaTutto(); });
+  ascoltaORileggi("pren", "prenotazioni", ULTIMI_DUE, v => { v = v || {}; S.pren = {[S.oggi]: v[S.oggi] || {}, [S.domani]: v[S.domani] || {}}; disegnaTutto(); });
   rileggi("partite", "partite", `&orderBy="giorno"&startAt="${S.oggi}"`, v => { S.partite = v || {}; disegnaTutto(); }, 30000);
 }
 

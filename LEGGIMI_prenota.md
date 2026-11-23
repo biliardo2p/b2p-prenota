@@ -51,6 +51,8 @@ all'amministratore). Soci e partite cambiano di rado: si rileggono ogni 30 secon
 Una scheda non in primo piano chiude tutto e riapre quando torna visibile; ogni richiesta ha un tempo massimo
 (20 s per le scritture, 40 s per le letture) oltre il quale l'app mostra un messaggio invece di restare bloccata, chiude
 la finestra e ricarica la situazione. Un ascolto muto per più di 70 secondi viene riaperto da solo.
+Se l'ascolto in tempo reale non riceve nulla entro 12 secondi (connessioni occupate da altre schede o finestre dello
+stesso browser), la scheda passa a rileggere le prenotazioni ogni 15 secondi (`ascoltaORileggi` in `js/dati.js`).
 
 ## Struttura dei dati
 
@@ -115,6 +117,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-23 (3)** — Riserva: se la connessione in tempo reale non parte entro 12 s, le prenotazioni si rileggono ogni
+  15 s (prima la griglia restava vuota). Regole invariate.
 - **2026-11-23 (2)** — Un solo ascolto in tempo reale per scheda (prima 4): con due schede o finestre aperte le connessioni
   finivano e le prenotazioni non partivano. Soci e partite si rileggono ogni 30 s. **Regole cambiate** (lettura di
   `prenotazioni` e `slot` con `limitToLast=2`).

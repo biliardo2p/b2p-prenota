@@ -119,7 +119,7 @@ function ascolta(nome, percorso, filtro, cb){
     st.ultimo = Date.now();
     es.addEventListener("keep-alive", () => { st.ultimo = Date.now(); });
     const applica = (ev, unisci) => {
-      st.ultimo = Date.now();
+      st.ultimo = Date.now(); st.ricevuto = true;
       let d; try{ d = JSON.parse(ev.data); }catch(e){ return; }
       if(!d) return;
       if(unisci) Object.entries(d.data || {}).forEach(([k, v]) => { st.valore = impostaIn(st.valore, d.path + "/" + k, v); });
@@ -154,6 +154,16 @@ function rileggi(nome, percorso, filtro, cb, ms){
   st.subito = leggi;
   st.timer = setInterval(leggi, ms);
   leggi();
+}
+/* ascolto con riserva: se entro 12 secondi non arriva nulla (connessioni del browser esaurite da altre
+   schede o finestre), la scheda passa a rileggere i dati ogni 15 secondi, che non tiene occupata una connessione */
+function ascoltaORileggi(nome, percorso, filtro, cb){
+  ascolta(nome, percorso, filtro, cb);
+  const st = ascolti.get(nome);
+  setTimeout(() => {
+    if(ascolti.get(nome) !== st || st.chiuso || st.ricevuto) return;
+    rileggi(nome, percorso, filtro, cb, 15000);
+  }, 12000);
 }
 function smettiAscolto(nome){ const st = ascolti.get(nome); if(st){ st.chiuso = true; if(st.es) st.es.close(); if(st.timer) clearInterval(st.timer); ascolti.delete(nome); } }
 function chiudiAscolti(){ [...ascolti.keys()].forEach(smettiAscolto); }
