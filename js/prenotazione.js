@@ -50,11 +50,11 @@ $("#form-prenota").addEventListener("submit", async e => {
   const p = {...orari(s), creata: ORA_SERVER};
 
   if(S.ospite){
-    const nome = f.nomeOspite.value.trim().replace(/\s+/g, " ");
+    const nome = nomeProprio(f.nomeOspite.value);
     if(nome.length < 2) return toast("Scrivi il tuo nome");
     p.titolare = S.uid; p.titolareNome = nome.slice(0, 60); p.stato = "da_confermare"; p.daOspite = true;
     if(!f.solo.checked){
-      const avv = f.avversarioOspite.value.trim().replace(/\s+/g, " ");
+      const avv = nomeProprio(f.avversarioOspite.value);
       if(avv.length < 2) return toast("Scrivi il nome dell'avversario, oppure spunta «Gioco da solo»");
       p.avversarioNome = avv.slice(0, 60);
     }
@@ -63,7 +63,7 @@ $("#form-prenota").addEventListener("submit", async e => {
     if(giocaGia(lista, S.uid, s.min, s.min + s.durata)) return toast("Hai già una partita in quell'orario");
     p.titolare = S.uid; p.titolareNome = S.io.nome; p.stato = "confermata";
     if(modo === "persona"){
-      const nome = f.avversario.value.trim().replace(/\s+/g, " ");
+      const nome = nomeProprio(f.avversario.value);
       if(nome.length < 2) return toast("Scrivi il nome dell'avversario");
       const uid = uidDaNome(nome);
       if(uid){

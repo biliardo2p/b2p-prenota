@@ -40,7 +40,7 @@ $("#form-completa").addEventListener("submit", async e => {
   try{ await creaScheda(f.nome.value, f.livello.value); }catch(err){ toast(msgErrore(err)); }
 });
 async function creaScheda(nome, livello){
-  nome = nome.trim().replace(/\s+/g, " ").slice(0, 60);
+  nome = nomeProprio(nome).slice(0, 60);
   await dbWrite({
     ["soci/" + session.uid]: {nome, livello, stato: "attesa", ruolo: "socio", creato: ORA_SERVER},
     ["privati/" + session.uid]: {email: session.email}

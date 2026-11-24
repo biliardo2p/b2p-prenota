@@ -25,7 +25,14 @@ $("#esci").addEventListener("click", esci);
 
 /* ================= gestione soci (admin) ================= */
 let emails = {};
-async function caricaEmail(){ try{ emails = (await dbGet("privati")) || {}; }catch(e){ emails = {}; } disegnaSoci(); }
+async function caricaEmail(){ try{ emails = (await dbGet("privati")) || {}; }catch(e){ emails = {}; } disegnaSoci(); sistemaNomi(); }
+
+/* quando un admin apre la scheda Admin, i nomi dei soci scritti in modo diverso vengono uniformati (Mario Rossi) */
+async function sistemaNomi(){
+  const w = {};
+  Object.entries(S.soci).forEach(([id, s]) => { const n = nomeProprio(s.nome); if(s.nome && n !== s.nome && n.length >= 3) w["soci/" + id + "/nome"] = n; });
+  if(Object.keys(w).length) try{ await dbWrite(w); }catch(e){}
+}
 
 function disegnaSoci(){
   if(!isAdmin()) return;

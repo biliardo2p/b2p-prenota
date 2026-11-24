@@ -131,6 +131,9 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-24 (7)** — Nomi di persona uniformati con le iniziali maiuscole (`nomeProprio` in `js/util.js`): registrazione,
+  nomi dell'ospite e avversari scritti a mano. I nomi dei soci già registrati si sistemano da soli quando un admin apre
+  la scheda Admin. Regole invariate.
 - **2026-11-24 (6)** — Statistiche come scheda dell'app («Statistiche», tra Avversari e Profilo); `statistiche.html` ora
   rimanda alla scheda. Barra delle schede più compatta sui telefoni. Regole invariate.
 - **2026-11-24 (5)** — **Tolte le partite programmate** (scheda Partite, `js/partite.js`, ascolto e regole del nodo
