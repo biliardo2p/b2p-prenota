@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="Prenota 2P">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@600;700&display=swap">
-<link rel="stylesheet" href="css/prenota.css?v=2026112401">
+<link rel="stylesheet" href="css/prenota.css?v=2026112402">
 </head>
 <body>
 <header class="testata">
@@ -165,6 +165,14 @@
       <ul id="soci-attesa" class="schede"></ul>
       <h2>Soci</h2>
       <ul id="soci-elenco" class="schede"></ul>
+      <h2>Conservazione dei dati</h2>
+      <div class="pannello">
+        <p>Togli i nomi dalle prenotazioni più vecchie di
+          <select id="anon-mesi"><option value="12">12 mesi</option><option value="24" selected>24 mesi</option><option value="36">36 mesi</option></select>.
+          Restano biliardo, giorno, orario e tipo di partita, quindi le statistiche non cambiano. Le partite programmate di quei giorni vengono cancellate.</p>
+        <button class="btn" type="button" id="anonimizza">Togli i nomi dalle prenotazioni vecchie</button>
+        <p class="meta">Per cancellare un socio uscito dal circolo usa «Cancella» nella sua scheda qui sopra.</p>
+      </div>
     </section>
   </main>
 </div>
@@ -232,14 +240,14 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/config.js?v=2026112401"></script>
-<script src="js/util.js?v=2026112401"></script>
-<script src="js/dati.js?v=2026112401"></script>
-<script src="js/griglia.js?v=2026112401"></script>
-<script src="js/prenotazione.js?v=2026112401"></script>
-<script src="js/bacheca.js?v=2026112401"></script>
-<script src="js/partite.js?v=2026112401"></script>
-<script src="js/soci.js?v=2026112401"></script>
-<script src="js/avvio.js?v=2026112401"></script>
+<script src="js/config.js?v=2026112402"></script>
+<script src="js/util.js?v=2026112402"></script>
+<script src="js/dati.js?v=2026112402"></script>
+<script src="js/griglia.js?v=2026112402"></script>
+<script src="js/prenotazione.js?v=2026112402"></script>
+<script src="js/bacheca.js?v=2026112402"></script>
+<script src="js/partite.js?v=2026112402"></script>
+<script src="js/soci.js?v=2026112402"></script>
+<script src="js/avvio.js?v=2026112402"></script>
 </body>
 </html>

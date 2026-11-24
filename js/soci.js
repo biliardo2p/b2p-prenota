@@ -57,6 +57,7 @@ function disegnaSoci(){
       ${s.id === S.uid ? "" : s.stato === "sospeso"
         ? `<button class="btn" data-az="riattiva">Riattiva</button>`
         : `<button class="btn pericolo" data-az="sospendi">Sospendi</button>`}
+      ${s.id === S.uid ? "" : `<button class="btn pericolo" data-az="cancella">Cancella</button>`}
     </li>`).join("");
 }
 
@@ -69,6 +70,7 @@ $("#tab-soci").addEventListener("click", async e => {
   try{
     if(az === "approva") await dbWrite({[k + "stato"]: "attivo", [k + "nuovoFinoAl"]: piuGiorni(S.oggi, SALA.giorniNuovo)});
     if(az === "riattiva") await dbWrite({[k + "stato"]: "attivo"});
+    if(az === "cancella") return cancellaSocio(id);
     if(az === "sospendi" && await chiedi(`Sospendere ${nomeDi(id)}? Non potrà più prenotare.`, "Sì, sospendi", "No"))
       await dbWrite({[k + "stato"]: "sospeso"});
     toast("Salvato");
@@ -83,3 +85,76 @@ $("#tab-soci").addEventListener("change", async e => {
           : {[k + "nuovoFinoAl"]: e.target.value || null};
   try{ await dbWrite(w); toast("Salvato"); }catch(err){ toast(msgErrore(err)); }
 });
+
+/* ================= conservazione dei dati (admin) =================
+   «Togli i nomi»: le prenotazioni restano (biliardo, giorno, orario, tipo) per le statistiche, ma titolare e avversario
+   diventano "anonimo" e la nota sparisce. «Cancella socio»: scheda ed email eliminate, prenotazioni future annullate,
+   nomi tolti da tutte le sue prenotazioni, partite programmate cancellate. Le regole permettono solo questi cambiamenti. */
+const ANONIMO = "anonimo", ANONIMO_NOME = "Anonimo";
+
+/* scrive a blocchi, per non mandare richieste enormi */
+async function scriviABlocchi(w, blocco = 400){
+  const chiavi = Object.keys(w);
+  for(let i = 0; i < chiavi.length; i += blocco)
+    await dbWrite(Object.fromEntries(chiavi.slice(i, i + blocco).map(k => [k, w[k]])));
+}
+/* campi da cambiare per togliere i nomi; soloUid: solo dove compare quel socio */
+function togliNomi(w, data, id, p, soloUid){
+  const k = percorso(data, id) + "/";
+  if(!soloUid || p.titolare === soloUid){
+    if(p.titolare !== ANONIMO) w[k + "titolare"] = ANONIMO;
+    if(p.titolareNome !== ANONIMO_NOME) w[k + "titolareNome"] = ANONIMO_NOME;
+    if(p.nota) w[k + "nota"] = null;
+  }
+  if(p.avversario && p.avversario !== ANONIMO && (!soloUid || p.avversario === soloUid)) w[k + "avversario"] = ANONIMO;
+  if(p.avversarioNome && p.avversarioNome !== ANONIMO_NOME && (!soloUid ? true : p.avversario === soloUid)) w[k + "avversarioNome"] = ANONIMO_NOME;
+}
+const dataIt = d => d.split("-").reverse().join("/");
+const partiteN = n => n === 1 ? "1 partita programmata" : n + " partite programmate";
+const quante = w => new Set(Object.keys(w).filter(k => k.startsWith("prenotazioni/")).map(k => k.split("/").slice(0, 3).join("/"))).size;
+
+$("#anonimizza").addEventListener("click", async e => {
+  const mesi = +$("#anon-mesi").value || SALA.conservaMesi;
+  const [y, m, d] = S.oggi.split("-").map(Number);
+  const limite = new Date(Date.UTC(y, m - 1 - mesi, d)).toISOString().slice(0, 10);   // giorni prima di questa data
+  const ultimo = piuGiorni(limite, -1);
+  e.target.disabled = true;
+  try{
+    const pren = (await dbGet("prenotazioni", `&orderBy="$key"&endAt="${ultimo}"`)) || {};
+    const part = (await dbGet("partite", `&orderBy="giorno"&endAt="${ultimo}"`)) || {};
+    const w = {};
+    Object.entries(pren).forEach(([data, g]) => Object.entries(g || {}).forEach(([id, p]) => togliNomi(w, data, id, p)));
+    const nPren = quante(w), nPart = Object.keys(part).length;
+    Object.keys(part).forEach(id => w["partite/" + id] = null);
+    if(!nPren && !nPart){ toast(`Niente da fare: nessun nome nelle prenotazioni fino al ${dataIt(ultimo)}`); return; }
+    if(!(await chiedi(`Togliere i nomi da ${nPren} prenotazioni fino al ${dataIt(ultimo)}` +
+        (nPart ? ` e cancellare ${partiteN(nPart)}` : "") + "? Non si può tornare indietro.", "Sì, togli i nomi", "No"))) return;
+    await scriviABlocchi(w);
+    toast(`Fatto: nomi tolti da ${nPren} prenotazioni` + (nPart ? `; partite programmate cancellate: ${nPart}` : ""));
+  }catch(err){ toast(msgErrore(err)); }
+  finally{ e.target.disabled = false; }
+});
+
+async function cancellaSocio(uid){
+  const nome = nomeDi(uid), email = (emails[uid] && emails[uid].email) || "";
+  if(!(await chiedi(`Cancellare ${nome}${email ? " (" + email + ")" : ""}? Le sue prenotazioni future vengono annullate e il suo nome ` +
+      "viene tolto da tutte le prenotazioni. Non si può tornare indietro.", "Sì, cancella", "No"))) return;
+  try{
+    const pren = (await dbGet("prenotazioni")) || {};
+    const part = (await dbGet("partite")) || {};
+    const w = {}, ora = Date.now();
+    Object.entries(pren).forEach(([data, g]) => Object.entries(g || {}).forEach(([id, p]) => {
+      if(p.titolare !== uid && p.avversario !== uid) return;
+      if(p.titolare === uid && ATTIVE.includes(p.stato) && p.inizio > ora){
+        w[percorso(data, id) + "/stato"] = "annullata";
+        slotDi(data, p.tavolo, p.min, durataDi(p)).forEach(k => w[k] = null);
+      }
+      togliNomi(w, data, id, p, uid);
+    }));
+    Object.entries(part).forEach(([id, x]) => { if(x.proponente === uid || x.avversario === uid) w["partite/" + id] = null; });
+    await scriviABlocchi(w);
+    await dbWrite({["privati/" + uid]: null, ["soci/" + uid]: null});
+    delete emails[uid];
+    toast(`${nome} cancellato. Elimina anche la sua utenza nella console Firebase → Authentication` + (email ? ` (${email})` : ""));
+  }catch(err){ toast(msgErrore(err)); }
+}

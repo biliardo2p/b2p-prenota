@@ -91,7 +91,7 @@ function disegna(){
   const annullate = righe.filter(x => x.stato === "annullata").length;
   const richieste = righe.filter(x => x.livello && (x.stato === "scaduta" || x.stato === "aperta" || x.avversario));
   const trovate = richieste.filter(x => x.avversario && x.stato === "confermata").length;
-  const giocatori = new Set(val.flatMap(x => [x.titolare, x.avversario]).filter(Boolean));
+  const giocatori = new Set(val.flatMap(x => [x.titolare, x.avversario]).filter(u => u && u !== "anonimo"));
 
   $("#tiles").innerHTML = [
     ["Ore prenotate", fmt1(ore), `su ${fmt1(oreDisp)} disponibili`],
@@ -173,7 +173,7 @@ function disegna(){
   /* soci più attivi (ore giocate da titolare o avversario) */
   const perSocio = {};
   val.forEach(x => [[x.titolare, x.titolareNome, !x.daOspite], [x.avversario, x.avversarioNome, true]].forEach(([uid, nome, ok]) => {
-    if(!uid || !ok) return;
+    if(!uid || !ok || uid === "anonimo") return;
     const s = perSocio[uid] = perSocio[uid] || {nome, ore: 0, n: 0};
     s.ore += durataDi(x) / 60; s.n++;
   }));

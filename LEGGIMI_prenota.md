@@ -85,13 +85,22 @@ stesso browser), la scheda passa a rileggere le prenotazioni ogni 15 secondi (`a
   Senza server, la richiesta scaduta la libera il primo socio che ha l'app aperta (le regole lo permettono solo dopo la scadenza).
 - I padrini vedono un avviso quando un nuovo socio cerca un avversario.
 - Partite programmate: per i giorni successivi, non bloccano biliardi; il giorno stesso, dalle 9, "Prenota il biliardo".
-- Le regole del database controllano: socio abilitato oppure ospite, aperture (21/9), orario futuro, durata e fine,
+- Le regole del database controllano: socio abilitato oppure ospite, aperture (21/9), orario (fino a 16 ore dopo l'inizio), durata e fine,
   scadenza, nomi coerenti con la scheda socio, chi può fare cosa (titolare, altro socio, ospite, amministratore).
 - **Statistiche** (`statistiche.html`, dalla scheda Admin): settimana, mese o anno con frecce per scorrere i periodi;
   ore prenotate e occupazione (biliardi × 16 ore di apertura × giorni fino a domani), prenotazioni, giocatori diversi,
   annullate; andamento per giorno o per mese; ore per biliardo; tipo di partita; mappa giorni × ore; esito di
   "Cerco avversario"; soci più attivi; esportazione CSV per Excel (separatore `;`). Gli admin leggono il nodo
   `prenotazioni` per intervallo di date (`orderBy="$key"`).
+- **Conservazione dei dati** (scheda Admin, in fondo):
+  - «Togli i nomi dalle prenotazioni vecchie» (12/24/36 mesi; proposta `SALA.conservaMesi` = 24): titolare e avversario
+    diventano `anonimo` / `Anonimo`, la nota sparisce; biliardo, orari, stato e tipo restano per le statistiche (che
+    escludono `anonimo` da giocatori e soci più attivi). Cancella anche le partite programmate di quei giorni.
+  - «Cancella» nella scheda di un socio: prenotazioni future annullate (caselle liberate), nome tolto da tutte le sue
+    prenotazioni (come titolare o avversario), partite programmate cancellate, poi `soci/<uid>` e `privati/<uid>`
+    eliminati. L'utenza di accesso resta in Firebase Authentication: **va eliminata a mano dalla console** (l'app lo ricorda).
+  - Regole: l'admin può solo sostituire nomi con `anonimo`/`Anonimo`, togliere la nota e annullare, senza toccare
+    biliardo e orari; può cancellare `privati/<uid>` e le partite.
 - Controllati solo dall'app (non dalle regole): una sola richiesta aperta per socio, niente due partite dello stesso socio
   nello stesso orario.
 
@@ -120,6 +129,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-24 (2)** — Scheda Admin: «Togli i nomi» dalle prenotazioni vecchie e «Cancella» socio. **Regole cambiate**
+  (anonimizzazione da parte dell'admin, cancellazione di `privati` e `partite`).
 - **2026-11-24** — Informativa privacy (`privacy.html`, linkata dall'accesso, dall'ospite e dal Profilo). Prenotazione
   di orari già passati di oggi, evidenziati a parte. Nuova icona dell'app (logo con calendario; file `img/icona-*`,
   richiamati con `?v=2` per forzare l'aggiornamento). **Regole cambiate** (`inizio > now` → `now < inizio + 16 h`).
