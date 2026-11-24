@@ -22,6 +22,7 @@ Ha in comune con loro solo lo stack (sito statico, JavaScript classico, Firebase
 index.html               pagina unica dell'app
 manuale.html             istruzioni per i soci
 statistiche.html         statistiche sull'uso dei biliardi (solo admin)
+privacy.html             informativa privacy (artt. 13-14 GDPR); le parti evidenziate «da-completare» le compila il direttivo
 manifest.webmanifest     app installabile "Prenota 2P" (scope /b2p-prenota/)
 css/prenota.css          colori e caratteri (come il Tabellone Live)
 css/statistiche.css      stile della pagina statistiche
@@ -69,6 +70,8 @@ stesso browser), la scheda passa a rileggere le prenotazioni ogni 15 secondi (`a
 - Inizio dalle **8:00** alle **22:00**, a passi di 30 minuti; fine entro le **24:00**.
 - Aperture (ora di Roma): partite che iniziano **prima delle 13** dalle **21 della sera prima**; partite **dalle 13 alle 22** dalle **9 del giorno stesso**.
   Valgono anche per chi gioca da solo. La griglia mostra oggi e domani.
+- Si può prenotare anche un orario **già passato di oggi** (partita iniziata o giocata senza prenotare): le caselle sono
+  più scure con un filo verde. Le regole accettano una prenotazione fino a 16 ore dopo il suo inizio (`now < inizio + 16 h`).
 - Durata: un tocco propone **2 ore** (o meno, se prima della prenotazione successiva c'è meno spazio); si può allungare,
   accorciare e spostare (anche su un altro biliardo) trascinando il riquadro o con i pulsanti, da **30 minuti a 4 ore**.
   Il titolare può modificare la prenotazione finché non è iniziata.
@@ -117,6 +120,9 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-24** — Informativa privacy (`privacy.html`, linkata dall'accesso, dall'ospite e dal Profilo). Prenotazione
+  di orari già passati di oggi, evidenziati a parte. Nuova icona dell'app (logo con calendario; file `img/icona-*`,
+  richiamati con `?v=2` per forzare l'aggiornamento). **Regole cambiate** (`inizio > now` → `now < inizio + 16 h`).
 - **2026-11-23 (5)** — Lettura immediata delle prenotazioni all'apertura, in parallelo all'ascolto: la griglia compare
   subito anche quando l'ascolto tarda a partire.
 - **2026-11-23 (4)** — Alla riapertura degli ascolti (finestra di nuovo in vista) la griglia mantiene i dati già mostrati

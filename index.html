@@ -8,14 +8,14 @@
 <link rel="icon" href="img/logo.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#070d18">
-<link rel="apple-touch-icon" href="img/icona-180.png">
+<link rel="apple-touch-icon" href="img/icona-180.png?v=2">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Prenota 2P">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@600;700&display=swap">
-<link rel="stylesheet" href="css/prenota.css?v=2026112306">
+<link rel="stylesheet" href="css/prenota.css?v=2026112401">
 </head>
 <body>
 <header class="testata">
@@ -42,7 +42,8 @@
   <div class="pannello">
     <p>Non sei registrato, o usi il tablet della sala?</p>
     <button class="btn grande" type="button" id="entra-ospite">Entra come ospite</button>
-    <p class="meta">Da ospite prenoti scrivendo i nomi dei giocatori; la prenotazione viene confermata dal direttivo.</p>
+    <p class="meta">Da ospite prenoti scrivendo i nomi dei giocatori; la prenotazione viene confermata dal direttivo.
+      <a href="privacy.html">Informativa privacy</a></p>
   </div>
   <form id="form-registrati" class="pannello" hidden>
     <p>Registrati con la tua email. Il direttivo controlla che tu sia socio e abilita l'utenza: poi potrai prenotare.</p>
@@ -58,7 +59,8 @@
     <summary>Informativa sui dati personali</summary>
     <p>L'ASD Biliardo Seconda Passione conserva nome, cognome, email e livello di gioco dei soci, e le loro prenotazioni,
       solo per gestire l'uso dei biliardi. Nome e prenotazioni sono visibili agli altri soci abilitati; l'email solo al direttivo.
-      I dati sono custoditi su Google Firebase (server in Belgio). Per farli correggere o cancellare scrivi al direttivo.</p>
+      I dati sono custoditi su Google Firebase (server in Belgio). Per farli correggere o cancellare scrivi al direttivo.
+      <a href="privacy.html">Leggi l'informativa completa</a>.</p>
   </details>
 </main>
 
@@ -105,6 +107,7 @@
       <p id="avviso-padrini" class="avviso padrini" hidden></p>
       <div class="legenda">
         <span class="lg libera">Libero</span>
+        <span class="lg passata">Libero, orario già passato</span>
         <span class="lg presto">Non ancora prenotabile</span>
         <span class="lg aperta">Cerca avversario</span>
         <span class="lg confermata">Prenotato</span>
@@ -149,6 +152,7 @@
       <div class="pannello">
         <button class="btn" id="cambia-pw" type="button">Cambia password</button>
         <a class="btn" href="manuale.html">Come si usa</a>
+        <a class="btn" href="privacy.html">Informativa privacy</a>
         <button class="btn" id="esci" type="button">Esci</button>
       </div>
     </section>
@@ -228,14 +232,14 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/config.js?v=2026112306"></script>
-<script src="js/util.js?v=2026112306"></script>
-<script src="js/dati.js?v=2026112306"></script>
-<script src="js/griglia.js?v=2026112306"></script>
-<script src="js/prenotazione.js?v=2026112306"></script>
-<script src="js/bacheca.js?v=2026112306"></script>
-<script src="js/partite.js?v=2026112306"></script>
-<script src="js/soci.js?v=2026112306"></script>
-<script src="js/avvio.js?v=2026112306"></script>
+<script src="js/config.js?v=2026112401"></script>
+<script src="js/util.js?v=2026112401"></script>
+<script src="js/dati.js?v=2026112401"></script>
+<script src="js/griglia.js?v=2026112401"></script>
+<script src="js/prenotazione.js?v=2026112401"></script>
+<script src="js/bacheca.js?v=2026112401"></script>
+<script src="js/partite.js?v=2026112401"></script>
+<script src="js/soci.js?v=2026112401"></script>
+<script src="js/avvio.js?v=2026112401"></script>
 </body>
 </html>

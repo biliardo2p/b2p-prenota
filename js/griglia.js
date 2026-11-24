@@ -9,7 +9,8 @@ const CHIUDE = () => minuti(SALA.chiusura);
 const TAVOLI = () => Array.from({length: SALA.tavoli}, (_, i) => i + 1);
 const scaduta = p => p.stato === "aperta" && p.scade && p.scade <= Date.now();
 /* si può prenotare adesso una partita che inizia alle "min" del giorno "data"? */
-const prenotabile = (data, min) => Date.now() >= apreAlle(data, min) && msRoma(data, min) > Date.now() && min >= PRIMO() && min <= ULTIMO();
+/* anche un orario già passato di oggi (partita iniziata o giocata senza prenotare): la casella è evidenziata a parte */
+const prenotabile = (data, min) => Date.now() >= apreAlle(data, min) && min >= PRIMO() && min <= ULTIMO();
 
 /* prenotazioni che occupano i biliardi in un giorno (le richieste scadute non contano più) */
 function prenDi(data){
@@ -68,7 +69,7 @@ function disegnaGriglia(){
       if(occupato(lista, t, m, m + STEP())) return;
       const ok = prenotabile(data, m), passato = msRoma(data, m) <= ora;
       h += ok
-        ? `<button class="cella libera" style="grid-row:${riga(m)};grid-column:${t + 1}" data-t="${t}" data-m="${m}" aria-label="Biliardo ${t} alle ${hhmm(m)}"></button>`
+        ? `<button class="cella libera${passato ? " passata" : ""}" style="grid-row:${riga(m)};grid-column:${t + 1}" data-t="${t}" data-m="${m}" aria-label="Biliardo ${t} alle ${hhmm(m)}${passato ? " (orario già passato)" : ""}"></button>`
         : `<div class="cella ${passato || m > ULTIMO() ? "no" : "presto"}" style="grid-row:${riga(m)};grid-column:${t + 1}"></div>`;
     });
   });
@@ -114,7 +115,6 @@ function erroreSel(s){
   if(s.durata > SALA.durataMax) return `Durata massima ${testoDurata(SALA.durataMax)}`;
   if(s.min + s.durata > CHIUDE()) return `Si deve finire entro le ${SALA.chiusura}`;
   if(s.tavolo < 1 || s.tavolo > SALA.tavoli) return "Biliardo non valido";
-  if(msRoma(s.data, s.min) <= Date.now()) return "Quest'orario è già passato";
   if(Date.now() < apreAlle(s.data, s.min))
     return s.min < minuti(SALA.mattinoFinoA) ? `Il mattino si prenota dalle ${SALA.aperturaMattino} della sera prima`
                                              : `Si prenota dalle ${SALA.aperturaPomeriggio} del giorno stesso`;

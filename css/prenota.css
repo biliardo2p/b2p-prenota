@@ -70,6 +70,7 @@ legend{font-weight:600;padding:0 4px}
 .legenda{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:16px;margin:8px 0}
 .lg::before{content:"";display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .lg.libera::before{background:var(--libera);border:1px solid var(--ok)}
+.lg.passata::before{background:#0c241b;border:1px solid rgba(34,197,94,.45)}
 .lg.aperta::before{background:var(--gold)}
 .lg.confermata::before{background:var(--pren)}
 .lg.mia::before{border:2px solid var(--home)}
@@ -81,6 +82,9 @@ legend{font-weight:600;padding:0 4px}
 .cella.libera{background:var(--libera);cursor:pointer}
 .cella.libera:hover,.cella.libera:focus-visible{background:var(--libera-hover);outline:2px solid var(--ok)}
 .cella.no{background:rgba(255,255,255,.03)}
+/* orario di oggi già passato: prenotabile, ma più spento e con un filo verde */
+.cella.libera.passata{background:#0c241b;box-shadow:inset 0 0 0 1px rgba(34,197,94,.35)}
+.cella.libera.passata:hover,.cella.libera.passata:focus-visible{background:var(--libera-hover)}
 .pren{border:0;border-radius:7px;padding:4px 5px;text-align:left;font:inherit;font-size:14px;line-height:1.15;overflow-wrap:break-word;hyphens:auto;color:var(--ink);overflow:hidden;cursor:pointer;z-index:1}
 .pren .fascia{display:block;font-size:14px;color:var(--mute)}
 .pren.confermata{background:var(--pren)}
@@ -133,3 +137,4 @@ dialog form{display:grid;gap:12px}
 body.con-barra .wrap{padding-bottom:230px}
 body.con-barra #toast{bottom:240px}
 body.ospite [data-solo-soci]{display:none!important}
+.privacy a,.pannello .meta a{color:var(--home)}
