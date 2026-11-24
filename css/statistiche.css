@@ -1,4 +1,4 @@
-/* Prenota 2P · statistiche.css — Pagina delle statistiche (solo amministratori) */
+/* Prenota 2P · statistiche.css — Scheda «Statistiche» dell'app */
 .wrap.largo{max-width:1100px}
 .comandi{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin:6px 0 14px}
 .segmenti{display:flex;border:1px solid var(--dim);border-radius:10px;overflow:hidden}

@@ -59,6 +59,7 @@ $$("nav button").forEach(b => b.addEventListener("click", () => {
   $$("nav button").forEach(x => x.classList.toggle("attivo", x === b));
   $$(".tab").forEach(t => t.hidden = t.id !== b.dataset.tab);
   if(b.dataset.tab === "tab-soci") caricaEmail();
+  if(b.dataset.tab === "tab-stat") apriStatistiche();
   window.scrollTo(0, 0);
 }));
 
@@ -93,6 +94,8 @@ async function avvia(){
   mostra("app");
   disegnaProfilo();
   ascoltaTutto();
+  /* vecchio indirizzo statistiche.html → scheda Statistiche */
+  if(location.hash === "#statistiche"){ history.replaceState(null, "", location.pathname); $("nav button[data-tab=tab-stat]").click(); }
 }
 function avviaOspite(){
   S.uid = session.uid; S.io = {nome: "Ospite", ruolo: "ospite", stato: "attivo"}; S.ospite = true;

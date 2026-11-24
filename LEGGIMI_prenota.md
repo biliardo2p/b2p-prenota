@@ -21,11 +21,11 @@ Ha in comune con loro solo lo stack (sito statico, JavaScript classico, Firebase
 ```
 index.html               pagina unica dell'app
 manuale.html             istruzioni per i soci
-statistiche.html         statistiche: «Circolo» (senza nomi) e «Le mie» (#mie), per tutti i soci abilitati
+statistiche.html         solo rimando ai vecchi collegamenti: apre la scheda Statistiche dell'app (./#statistiche)
 privacy.html             informativa privacy (artt. 13-14 GDPR); le parti evidenziate «da-completare» le compila il direttivo
 manifest.webmanifest     app installabile "Prenota 2P" (scope /b2p-prenota/)
 css/prenota.css          colori e caratteri (come il Tabellone Live)
-css/statistiche.css      stile della pagina statistiche
+css/statistiche.css      stile della scheda Statistiche
 js/config.js             Firebase e impostazioni della sala (biliardi, orari, durata, scadenze)
 js/util.js               utilità, stato condiviso, orari nel fuso di Roma
 js/dati.js               login, lettura/scrittura e ascolto in tempo reale via REST
@@ -34,7 +34,7 @@ js/prenotazione.js       nuova prenotazione, modifica, dettaglio, "Gioco io", an
 js/bacheca.js            chi cerca un avversario
 js/soci.js               profilo e gestione soci (admin)
 js/avvio.js              accesso, registrazione, schede, avvio
-js/statistiche.js        calcolo e grafici delle statistiche, esportazione CSV
+js/statistiche.js        scheda Statistiche: calcolo e grafici, esportazione CSV (apriStatistiche() all'apertura della scheda)
 regole_database.json     regole di sicurezza del database
 img/                     logo e icone del circolo
 ```
@@ -85,12 +85,12 @@ stesso browser), la scheda passa a rileggere le prenotazioni ogni 15 secondi (`a
 - Niente partite programmate per i giorni successivi (tolte il 24/11/2026 per semplicità): si usa solo «Cerco un avversario».
 - Le regole del database controllano: socio abilitato oppure ospite, aperture (21/9), orario (fino a 16 ore dopo l'inizio), durata e fine,
   scadenza, nomi coerenti con la scheda socio, chi può fare cosa (titolare, altro socio, ospite, amministratore).
-- **Statistiche** (`statistiche.html`, dal Profilo e dalla scheda Admin; per tutti i soci abilitati, non per gli ospiti):
+- **Statistiche** (scheda dell'app `tab-stat`, per tutti i soci abilitati, non per gli ospiti; si ricarica a ogni apertura):
   settimana, mese o anno con frecce per scorrere i periodi; due viste:
   - **Circolo** — nessun nome: ore prenotate e occupazione (biliardi × 16 ore di apertura × giorni fino a domani),
     prenotazioni, giocatori diversi (solo il numero), annullate; andamento; ore per biliardo; tipo di partita;
     mappa giorni × ore; CSV senza nomi.
-  - **Le mie** (`statistiche.html#mie`) — solo le partite del socio collegato (titolare o avversario): ore, partite,
+  - **Le mie** — solo le partite del socio collegato (titolare o avversario): ore, partite,
     biliardi, quando gioca, avversari (soci per scheda, non soci per nome), sue richieste «Cerco avversario»; CSV con i nomi.
   I soci leggono il nodo `prenotazioni` per intervallo di date (`orderBy="$key"`): regola `.read: A` (prima potevano
   già leggere una giornata alla volta).
@@ -131,6 +131,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-24 (6)** — Statistiche come scheda dell'app («Statistiche», tra Avversari e Profilo); `statistiche.html` ora
+  rimanda alla scheda. Barra delle schede più compatta sui telefoni. Regole invariate.
 - **2026-11-24 (5)** — **Tolte le partite programmate** (scheda Partite, `js/partite.js`, ascolto e regole del nodo
   `partite`). **Regole cambiate**: il nodo `partite` non è più leggibile né scrivibile; i dati rimasti si possono cancellare
   dalla console. Resta il campo `partita` nelle prenotazioni vecchie (ignorato).

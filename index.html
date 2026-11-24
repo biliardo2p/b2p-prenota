@@ -15,7 +15,8 @@
 <meta name="apple-mobile-web-app-title" content="Prenota 2P">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@600;700&display=swap">
-<link rel="stylesheet" href="css/prenota.css?v=2026112405">
+<link rel="stylesheet" href="css/prenota.css?v=2026112406">
+<link rel="stylesheet" href="css/statistiche.css?v=2026112406">
 </head>
 <body>
 <header class="testata">
@@ -91,6 +92,7 @@
   <nav>
     <button class="attivo" data-tab="tab-oggi">Prenota</button>
     <button data-tab="tab-bacheca" data-solo-soci>Avversari <span id="conta-bacheca" class="conta" hidden></span></button>
+    <button data-tab="tab-stat" data-solo-soci>Statistiche</button>
     <button data-tab="tab-profilo">Profilo</button>
     <button data-tab="tab-soci" id="tab-soci-btn" data-solo-soci hidden>Admin <span id="conta-soci" class="conta" hidden></span></button>
   </nav>
@@ -121,6 +123,59 @@
       <ul id="bacheca" class="schede"></ul>
     </section>
 
+    <!-- statistiche: «Circolo» senza nomi, «Le mie» visibili solo al socio collegato -->
+    <section id="tab-stat" class="tab" hidden>
+      <div class="comandi">
+        <div class="segmenti" role="group" aria-label="Di chi" id="vista">
+          <button data-vista="circolo" class="attivo">Circolo</button>
+          <button data-vista="mie">Le mie</button>
+        </div>
+        <div class="segmenti" role="group" aria-label="Periodo" id="periodi">
+          <button data-tipo="settimana">Settimana</button>
+          <button data-tipo="mese" class="attivo">Mese</button>
+          <button data-tipo="anno">Anno</button>
+        </div>
+        <div class="naviga">
+          <button class="btn piccolo" id="prec" aria-label="Periodo precedente">◀</button>
+          <b id="periodo-etichetta"></b>
+          <button class="btn piccolo" id="succ" aria-label="Periodo successivo">▶</button>
+        </div>
+        <button class="btn piccolo" id="csv">Scarica CSV (Excel)</button>
+      </div>
+      <p id="carico" class="meta">Carico i dati…</p>
+      <div class="tiles" id="tiles"></div>
+      <div class="carta">
+        <h2><span id="titolo-andamento">Ore prenotate</span> <span class="meta" id="andamento-unita"></span></h2>
+        <div id="andamento" class="barre"></div>
+      </div>
+      <div class="due">
+        <div class="carta">
+          <h2 id="titolo-biliardo">Per biliardo</h2>
+          <div id="per-biliardo"></div>
+        </div>
+        <div class="carta">
+          <h2>Tipo di partita</h2>
+          <div id="per-tipo"></div>
+        </div>
+      </div>
+      <div class="carta">
+        <h2 id="titolo-mappa">Quando si gioca</h2>
+        <p class="meta" id="nota-mappa"></p>
+        <div id="mappa" class="mappa-box"></div>
+      </div>
+      <div class="due" id="solo-mie" hidden>
+        <div class="carta">
+          <h2>I miei avversari</h2>
+          <div id="top"></div>
+        </div>
+        <div class="carta">
+          <h2>Le mie richieste «Cerco avversario»</h2>
+          <div id="cerco"></div>
+        </div>
+      </div>
+      <p class="meta" id="nota-fondo"></p>
+    </section>
+
     <section id="tab-profilo" class="tab" hidden>
       <div id="profilo-ospite" class="pannello" hidden>
         <h2>Sei entrato come ospite</h2>
@@ -136,8 +191,6 @@
       </form>
       <div class="pannello">
         <button class="btn" id="cambia-pw" type="button">Cambia password</button>
-        <a class="btn" href="statistiche.html#mie">Le mie statistiche</a>
-        <a class="btn" href="statistiche.html">Statistiche del circolo</a>
         <a class="btn" href="manuale.html">Come si usa</a>
         <a class="btn" href="privacy.html">Informativa privacy</a>
         <button class="btn" id="esci" type="button">Esci</button>
@@ -145,7 +198,6 @@
     </section>
 
     <section id="tab-soci" class="tab" hidden>
-      <p><a class="btn primario grande" href="statistiche.html">Statistiche sull'uso dei biliardi</a></p>
       <h2>Prenotazioni da confermare</h2>
       <ul id="da-confermare" class="schede"></ul>
       <h2>Nuovi soci da approvare</h2>
@@ -225,15 +277,17 @@
   <div class="riga"><button class="btn primario" id="chiedi-si"></button><button class="btn" id="chiedi-no"></button></div>
 </dialog>
 
+<div id="suggerimento" role="tooltip" hidden></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/config.js?v=2026112405"></script>
-<script src="js/util.js?v=2026112405"></script>
-<script src="js/dati.js?v=2026112405"></script>
-<script src="js/griglia.js?v=2026112405"></script>
-<script src="js/prenotazione.js?v=2026112405"></script>
-<script src="js/bacheca.js?v=2026112405"></script>
-<script src="js/soci.js?v=2026112405"></script>
-<script src="js/avvio.js?v=2026112405"></script>
+<script src="js/config.js?v=2026112406"></script>
+<script src="js/util.js?v=2026112406"></script>
+<script src="js/dati.js?v=2026112406"></script>
+<script src="js/griglia.js?v=2026112406"></script>
+<script src="js/prenotazione.js?v=2026112406"></script>
+<script src="js/bacheca.js?v=2026112406"></script>
+<script src="js/soci.js?v=2026112406"></script>
+<script src="js/statistiche.js?v=2026112406"></script>
+<script src="js/avvio.js?v=2026112406"></script>
 </body>
 </html>

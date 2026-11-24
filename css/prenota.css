@@ -138,3 +138,4 @@ body.con-barra .wrap{padding-bottom:230px}
 body.con-barra #toast{bottom:240px}
 body.ospite [data-solo-soci]{display:none!important}
 .privacy a,.pannello .meta a{color:var(--home)}
+@media (max-width:480px){nav{gap:0}nav button{font-size:15px;padding:12px 4px}}

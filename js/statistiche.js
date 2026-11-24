@@ -1,12 +1,12 @@
-/* Prenota 2P · statistiche.js — Statistiche sull'uso dei biliardi, per tutti i soci abilitati.
+/* Prenota 2P · statistiche.js — Scheda «Statistiche» dell'app, per tutti i soci abilitati (non per gli ospiti).
    Due viste: «Circolo» (solo numeri complessivi, nessun nome) e «Le mie» (le partite del socio collegato, con i suoi avversari).
    Legge le prenotazioni del periodo con una sola richiesta (ordinate per data) e calcola tutto nel browser. */
 
 const GIORNI_SETT = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
 const MESI = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
-const ST = {tipo: "mese", vista: location.hash === "#mie" ? "mie" : "circolo", rif: null, righe: [], per: null};
+const ST = {tipo: "mese", vista: "circolo", rif: null, righe: [], per: null};
 const IO = () => session && session.uid;
-const mia = x => x.titolare === IO() || x.avversario === IO();
+const statMia = x => x.titolare === IO() || x.avversario === IO();
 const ORE_APERTURA = () => (minuti(SALA.chiusura) - minuti(SALA.primoInizio)) / 60;
 const fmt1 = n => n.toLocaleString("it-IT", {maximumFractionDigits: 1});
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
@@ -32,7 +32,7 @@ function periodo(){
   for(let d = da; d <= a && d <= limite; d = piuGiorni(d, 1)) giorni.push(d);
   return {da, a, etichetta, giorni};
 }
-function sposta(n){
+function statSposta(n){
   const [y, m, d] = ST.rif.split("-").map(Number);
   if(ST.tipo === "settimana") ST.rif = piuGiorni(ST.rif, 7 * n);
   else if(ST.tipo === "mese"){ const t = new Date(Date.UTC(y, m - 1 + n, 1)); ST.rif = t.toISOString().slice(0, 10); }
@@ -45,7 +45,6 @@ async function carica(){
   const p = periodo();
   ST.per = p;
   $("#periodo-etichetta").textContent = p.etichetta;
-  $("#periodo-nome").textContent = (ST.vista === "mie" ? "Le mie · " : "") + p.etichetta;
   $("#carico").hidden = false;
   try{
     const filtro = `&orderBy=${encodeURIComponent('"$key"')}&startAt=${encodeURIComponent('"' + p.da + '"')}&endAt=${encodeURIComponent('"' + p.a + '"')}`;
@@ -88,7 +87,7 @@ function barreOrizzontali(voci){
 }
 
 function disegna(){
-  const p = ST.per, mie = ST.vista === "mie", righe = mie ? ST.righe.filter(mia) : ST.righe, val = righe.filter(valida);
+  const p = ST.per, mie = ST.vista === "mie", righe = mie ? ST.righe.filter(statMia) : ST.righe, val = righe.filter(valida);
   const ore = val.reduce((s, x) => s + durataDi(x) / 60, 0);
   const oreDisp = SALA.tavoli * ORE_APERTURA() * p.giorni.length;
   const annullate = righe.filter(x => x.stato === "annullata").length;
@@ -214,7 +213,7 @@ function scaricaCSV(){
   const c = v => { const s = String(v ?? ""); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const mie = ST.vista === "mie";
   const intest = ["data", "giorno", "biliardo", "inizio", "fine", "durata_min", "stato", "tipo", ...(mie ? ["titolare", "avversario"] : [])];
-  const righe = (mie ? ST.righe.filter(mia) : ST.righe).map(x => [x.data, GIORNI_SETT[giornoSett(x.data)], x.tavolo, hhmm(x.min), hhmm(x.min + durataDi(x)),
+  const righe = (mie ? ST.righe.filter(statMia) : ST.righe).map(x => [x.data, GIORNI_SETT[giornoSett(x.data)], x.tavolo, hhmm(x.min), hhmm(x.min + durataDi(x)),
     durataDi(x), x.stato, tipoDi(x), ...(mie ? [x.titolareNome, x.avversarioNome || ""] : [])].map(c).join(";"));
   const blob = new Blob([String.fromCharCode(0xFEFF) + [intest.join(";"), ...righe].join("\r\n")], {type: "text/csv;charset=utf-8"});
   const a = document.createElement("a");
@@ -248,22 +247,14 @@ $$("#periodi button").forEach(b => b.addEventListener("click", () => {
 function scegliVista(v){
   ST.vista = v;
   $$("#vista button").forEach(x => x.classList.toggle("attivo", x.dataset.vista === v));
-  history.replaceState(null, "", v === "mie" ? "#mie" : location.pathname + location.search);
-  $(".titolo").textContent = v === "mie" ? "Le mie statistiche" : "Statistiche biliardi";
-  if(ST.per) $("#periodo-nome").textContent = (v === "mie" ? "Le mie · " : "") + ST.per.etichetta;
 }
 $$("#vista button").forEach(b => b.addEventListener("click", () => { scegliVista(b.dataset.vista); if(ST.per) disegna(); }));
-$("#prec").addEventListener("click", () => sposta(-1));
-$("#succ").addEventListener("click", () => sposta(1));
+$("#prec").addEventListener("click", () => statSposta(-1));
+$("#succ").addEventListener("click", () => statSposta(1));
 $("#csv").addEventListener("click", scaricaCSV);
 
-(async () => {
-  ST.rif = adesso().data;
-  S.oggi = ST.rif;
-  let io = null;
-  try{ if(session && !session.ospite) io = await dbGet("soci/" + session.uid); }catch(e){}
-  if(!io || io.stato !== "attivo"){ $("#negato").hidden = false; return; }
-  scegliVista(ST.vista);
-  $("#stat").hidden = false;
+/* chiamata dall'app ogni volta che si apre la scheda: ricarica il periodo scelto */
+function apriStatistiche(){
+  if(!ST.rif) ST.rif = adesso().data;
   carica();
-})();
+}
