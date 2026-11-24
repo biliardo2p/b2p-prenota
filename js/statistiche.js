@@ -250,6 +250,7 @@ function scegliVista(v){
   $$("#vista button").forEach(x => x.classList.toggle("attivo", x.dataset.vista === v));
   history.replaceState(null, "", v === "mie" ? "#mie" : location.pathname + location.search);
   $(".titolo").textContent = v === "mie" ? "Le mie statistiche" : "Statistiche biliardi";
+  if(ST.per) $("#periodo-nome").textContent = (v === "mie" ? "Le mie · " : "") + ST.per.etichetta;
 }
 $$("#vista button").forEach(b => b.addEventListener("click", () => { scegliVista(b.dataset.vista); if(ST.per) disegna(); }));
 $("#prec").addEventListener("click", () => sposta(-1));
