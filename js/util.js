@@ -12,7 +12,6 @@ const S = {
   pren: {},                 /* data → {id → prenotazione} (oggi e domani; solo soci) */
   slot: {},                 /* data → {tavolo → {HHMM → id}} (ospiti: occupazione senza nomi) */
   mie: {},                  /* ospiti: id → propria prenotazione */
-  partite: {},              /* partite programmate da oggi in poi */
   oggi: null, domani: null,
   giorno: null,             /* giorno mostrato nella griglia */
   sel: null,                /* selezione in corso: {data, tavolo, min, durata, id?} */

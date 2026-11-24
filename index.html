@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="Prenota 2P">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@600;700&display=swap">
-<link rel="stylesheet" href="css/prenota.css?v=2026112404">
+<link rel="stylesheet" href="css/prenota.css?v=2026112405">
 </head>
 <body>
 <header class="testata">
@@ -91,7 +91,6 @@
   <nav>
     <button class="attivo" data-tab="tab-oggi">Prenota</button>
     <button data-tab="tab-bacheca" data-solo-soci>Avversari <span id="conta-bacheca" class="conta" hidden></span></button>
-    <button data-tab="tab-partite" data-solo-soci>Partite <span id="conta-partite" class="conta" hidden></span></button>
     <button data-tab="tab-profilo">Profilo</button>
     <button data-tab="tab-soci" id="tab-soci-btn" data-solo-soci hidden>Admin <span id="conta-soci" class="conta" hidden></span></button>
   </nav>
@@ -122,25 +121,11 @@
       <ul id="bacheca" class="schede"></ul>
     </section>
 
-    <section id="tab-partite" class="tab" hidden>
-      <h2>Le tue partite</h2>
-      <ul id="partite" class="schede"></ul>
-      <h2>Programma una partita</h2>
-      <p class="meta">Per i prossimi giorni. Non prenota il biliardo: quando si aprono le prenotazioni (dalle 21 della sera prima per il mattino, dalle 9 per il pomeriggio) lo prenoti con un tocco.</p>
-      <form id="form-partita" class="pannello">
-        <label>Giorno <input name="giorno" type="date" required></label>
-        <label>Ora <select name="ora"></select></label>
-        <label>Con chi <select name="avversario"></select></label>
-        <label>Nota (facoltativa) <input name="nota" maxlength="120"></label>
-        <button class="btn primario grande" type="submit">Proponi la partita</button>
-      </form>
-    </section>
-
     <section id="tab-profilo" class="tab" hidden>
       <div id="profilo-ospite" class="pannello" hidden>
         <h2>Sei entrato come ospite</h2>
         <p>Le tue prenotazioni restano su questo dispositivo e vengono confermate dal direttivo.
-          Se sei socio, esci e registrati: potrai cercare avversari e programmare partite.</p>
+          Se sei socio, esci e registrati: potrai cercare avversari.</p>
       </div>
       <form id="form-profilo" class="pannello">
         <h2>Il tuo profilo</h2>
@@ -171,7 +156,7 @@
       <div class="pannello">
         <p>Togli i nomi dalle prenotazioni più vecchie di
           <select id="anon-mesi"><option value="12">12 mesi</option><option value="24" selected>24 mesi</option><option value="36">36 mesi</option></select>.
-          Restano biliardo, giorno, orario e tipo di partita, quindi le statistiche non cambiano. Le partite programmate di quei giorni vengono cancellate.</p>
+          Restano biliardo, giorno, orario e tipo di partita, quindi le statistiche non cambiano.</p>
         <button class="btn" type="button" id="anonimizza">Togli i nomi dalle prenotazioni vecchie</button>
         <p class="meta">Per cancellare un socio uscito dal circolo usa «Cancella» nella sua scheda qui sopra.</p>
       </div>
@@ -242,14 +227,13 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/config.js?v=2026112404"></script>
-<script src="js/util.js?v=2026112404"></script>
-<script src="js/dati.js?v=2026112404"></script>
-<script src="js/griglia.js?v=2026112404"></script>
-<script src="js/prenotazione.js?v=2026112404"></script>
-<script src="js/bacheca.js?v=2026112404"></script>
-<script src="js/partite.js?v=2026112404"></script>
-<script src="js/soci.js?v=2026112404"></script>
-<script src="js/avvio.js?v=2026112404"></script>
+<script src="js/config.js?v=2026112405"></script>
+<script src="js/util.js?v=2026112405"></script>
+<script src="js/dati.js?v=2026112405"></script>
+<script src="js/griglia.js?v=2026112405"></script>
+<script src="js/prenotazione.js?v=2026112405"></script>
+<script src="js/bacheca.js?v=2026112405"></script>
+<script src="js/soci.js?v=2026112405"></script>
+<script src="js/avvio.js?v=2026112405"></script>
 </body>
 </html>

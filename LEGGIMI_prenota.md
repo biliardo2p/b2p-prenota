@@ -32,7 +32,6 @@ js/dati.js               login, lettura/scrittura e ascolto in tempo reale via R
 js/griglia.js            griglia (oggi/domani), selezione, trascinamento
 js/prenotazione.js       nuova prenotazione, modifica, dettaglio, "Gioco io", annulla, scadenze, prenotazioni degli ospiti
 js/bacheca.js            chi cerca un avversario
-js/partite.js            partite programmate
 js/soci.js               profilo e gestione soci (admin)
 js/avvio.js              accesso, registrazione, schede, avvio
 js/statistiche.js        calcolo e grafici delle statistiche, esportazione CSV
@@ -48,7 +47,7 @@ Connessioni: il Realtime Database via REST usa connessioni HTTP/1.1 e il browser
 lo stesso indirizzo, sommando tutte le schede e finestre. Per questo ogni scheda tiene aperto **un solo ascolto**:
 le prenotazioni (per gli ospiti le caselle `slot`) delle ultime due giornate, con la query
 `orderBy="$key"&limitToLast=2` (le regole permettono la lettura di `prenotazioni` e `slot` solo con questa query, oltre
-all'amministratore). Soci e partite cambiano di rado: si rileggono ogni 30 secondi e subito dopo ogni scrittura.
+all'amministratore). I soci cambiano di rado: si rileggono ogni 30 secondi e subito dopo ogni scrittura.
 Una scheda non in primo piano chiude tutto e riapre quando torna visibile; ogni richiesta ha un tempo massimo
 (20 s per le scritture, 40 s per le letture) oltre il quale l'app mostra un messaggio invece di restare bloccata, chiude
 la finestra e ricarica la situazione. Un ascolto muto per più di 70 secondi viene riaperto da solo.
@@ -63,7 +62,6 @@ stesso browser), la scheda passa a rileggere le prenotazioni ogni 15 secondi (`a
 | `privati/<uid>` | `email` (la vedono solo il socio e gli amministratori) |
 | `prenotazioni/<AAAA-MM-GG>/<id>` | `tavolo`, `min` (minuti dalla mezzanotte), `durata` (minuti), `inizio`/`fine`/`apertura` (ms), `titolare`, `titolareNome`, `avversario` (uid, se socio), `avversarioNome` (anche scritto a mano), `ospite` (vero se l'avversario non è socio), `daOspite` (vero se prenotata da un'utenza ospite), `stato` (aperta, confermata, da_confermare, annullata, scaduta), `livello`, `nota`, `scade` (ms), `partita`, `creata` |
 | `slot/<AAAA-MM-GG>/<tavolo>/<HHMM>` | id della prenotazione che occupa quella mezz'ora: le regole permettono di scriverlo solo se è vuoto, così due prenotazioni non possono sovrapporsi |
-| `partite/<id>` | `giorno`, `min`, `proponente`, `proponenteNome`, `avversario`, `avversarioNome`, `stato` (aperta, proposta, accettata, rifiutata, prenotata, annullata), `nota`, `prenotazione`, `creata` |
 
 ## Regole di funzionamento
 
@@ -84,11 +82,7 @@ stesso browser), la scheda passa a rileggere le prenotazioni ogni 15 secondi (`a
 - "Cerco avversario": max una richiesta aperta per socio; **scade 3 ore prima** dell'inizio e il biliardo si libera.
   Senza server, la richiesta scaduta la libera il primo socio che ha l'app aperta (le regole lo permettono solo dopo la scadenza).
 - I padrini vedono un avviso quando un nuovo socio cerca un avversario.
-- Partite programmate: per i giorni successivi, non bloccano biliardi; quando l'orario diventa prenotabile, "Prenota il biliardo".
-  Sono oggetti separati dalle prenotazioni. Quando l'orario è prenotabile una richiesta "aperta" (a chiunque) sparisce per
-  gli altri; il proponente vede "Prenota e cerca avversario" (prenotazione con «Cerco un avversario», la partita passa ad
-  `annullata`). Se uno dei giocatori ha già una prenotazione sovrapposta (oggi/domani) compare un avviso al posto del pulsante.
-  Le partite di orari già iniziati non si mostrano.
+- Niente partite programmate per i giorni successivi (tolte il 24/11/2026 per semplicità): si usa solo «Cerco un avversario».
 - Le regole del database controllano: socio abilitato oppure ospite, aperture (21/9), orario (fino a 16 ore dopo l'inizio), durata e fine,
   scadenza, nomi coerenti con la scheda socio, chi può fare cosa (titolare, altro socio, ospite, amministratore).
 - **Statistiche** (`statistiche.html`, dal Profilo e dalla scheda Admin; per tutti i soci abilitati, non per gli ospiti):
@@ -103,12 +97,12 @@ stesso browser), la scheda passa a rileggere le prenotazioni ogni 15 secondi (`a
 - **Conservazione dei dati** (scheda Admin, in fondo):
   - «Togli i nomi dalle prenotazioni vecchie» (12/24/36 mesi; proposta `SALA.conservaMesi` = 24): titolare e avversario
     diventano `anonimo` / `Anonimo`, la nota sparisce; biliardo, orari, stato e tipo restano per le statistiche (che
-    escludono `anonimo` da giocatori e soci più attivi). Cancella anche le partite programmate di quei giorni.
+    escludono `anonimo` da giocatori e soci più attivi).
   - «Cancella» nella scheda di un socio: prenotazioni future annullate (caselle liberate), nome tolto da tutte le sue
-    prenotazioni (come titolare o avversario), partite programmate cancellate, poi `soci/<uid>` e `privati/<uid>`
+    prenotazioni (come titolare o avversario), poi `soci/<uid>` e `privati/<uid>`
     eliminati. L'utenza di accesso resta in Firebase Authentication: **va eliminata a mano dalla console** (l'app lo ricorda).
   - Regole: l'admin può solo sostituire nomi con `anonimo`/`Anonimo`, togliere la nota e annullare, senza toccare
-    biliardo e orari; può cancellare `privati/<uid>` e le partite.
+    biliardo e orari; può cancellare `privati/<uid>`.
 - Controllati solo dall'app (non dalle regole): una sola richiesta aperta per socio, niente due partite dello stesso socio
   nello stesso orario.
 
@@ -137,6 +131,9 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-24 (5)** — **Tolte le partite programmate** (scheda Partite, `js/partite.js`, ascolto e regole del nodo
+  `partite`). **Regole cambiate**: il nodo `partite` non è più leggibile né scrivibile; i dati rimasti si possono cancellare
+  dalla console. Resta il campo `partita` nelle prenotazioni vecchie (ignorato).
 - **2026-11-24 (4)** — Partite programmate: richieste aperte nascoste agli altri quando l'orario è prenotabile,
   "Prenota e cerca avversario" per il proponente, avviso di prenotazione già presente, orari passati nascosti. Regole invariate.
 - **2026-11-24 (3)** — Statistiche per tutti i soci: vista «Circolo» senza nomi (tolti «Soci più attivi» e «Cerco

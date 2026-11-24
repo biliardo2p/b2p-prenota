@@ -67,7 +67,7 @@ function disegnaTutto(){
   liberaScadute();
   disegnaGriglia();
   disegnaBacheca();
-  if(!S.ospite){ disegnaPartite(); disegnaSoci(); }
+  if(!S.ospite) disegnaSoci();
 }
 
 /* ================= avvio ================= */
@@ -113,7 +113,7 @@ function giorni(){
 }
 /* Una sola connessione in tempo reale per scheda (prenotazioni, o caselle per gli ospiti, di oggi e domani):
    il browser ne concede poche verso lo stesso indirizzo e oltre quel numero le prenotazioni restavano in coda.
-   Soci e partite cambiano di rado: si rileggono ogni 30 secondi e subito dopo ogni scrittura.
+   I soci cambiano di rado: si rileggono ogni 30 secondi e subito dopo ogni scrittura.
    Se la connessione in tempo reale non parte entro 12 secondi, anche le prenotazioni si rileggono (ogni 15 s). */
 const ULTIMI_DUE = '&orderBy="$key"&limitToLast=2';
 function ascoltaTutto(){
@@ -131,7 +131,6 @@ function ascoltaTutto(){
     S.io = io; disegnaProfilo(); disegnaTutto();
   }, 30000);
   ascoltaORileggi("pren", "prenotazioni", ULTIMI_DUE, v => { v = v || {}; S.pren = {[S.oggi]: v[S.oggi] || {}, [S.domani]: v[S.domani] || {}}; disegnaTutto(); });
-  rileggi("partite", "partite", `&orderBy="giorno"&startAt="${S.oggi}"`, v => { S.partite = v || {}; disegnaTutto(); }, 30000);
 }
 
 /* Una scheda non in primo piano chiude i suoi ascolti: il browser permette poche connessioni

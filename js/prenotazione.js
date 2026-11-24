@@ -31,8 +31,6 @@ function apriPrenota(){
       .map(([, x]) => `<option value="${esc(x.nome)}">`).join("");
     f.livello.innerHTML = LIVELLI.map(l => `<option ${l === S.io.livello ? "selected" : ""}>${l}</option>`).join("");
     if(s.avversario) f.avversario.value = nomeDi(s.avversario);
-    if(s.modo) f.modo.value = s.modo;
-    if(s.nota) f.nota.value = s.nota;
   }
   mostraCampi();
   $("#dlg-prenota").showModal();
@@ -81,14 +79,10 @@ $("#form-prenota").addEventListener("submit", async e => {
       p.scade = p.inizio - SALA.scadenzaOre * 3600000;
       if(p.scade <= Date.now()) return toast(`Troppo tardi per cercare un avversario: serve almeno ${SALA.scadenzaOre} ore di anticipo`);
     }
-    if(s.partita) p.partita = s.partita;
   }
 
   const id = nuovoId(), w = {[percorso(s.data, id)]: p};
   slotDi(s.data, s.tavolo, s.min, s.durata).forEach(k => w[k] = id);
-  if(s.partita){ w["partite/" + s.partita + "/stato"] = "prenotata"; w["partite/" + s.partita + "/prenotazione"] = id; }
-  /* partita programmata «cerco avversario» diventata prenotazione: la proposta si chiude */
-  if(s.chiudiPartita) w["partite/" + s.chiudiPartita + "/stato"] = "annullata";
   const btn = f.querySelector("[type=submit]"); btn.disabled = true;
   try{
     await dbWrite(w);

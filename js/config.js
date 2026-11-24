@@ -1,6 +1,6 @@
 /* Prenota 2P · config.js — Collegamento a Firebase e impostazioni del circolo
    I file js/ si caricano in ordine da index.html e condividono le stesse variabili (script classici, non moduli).
-   L'ordine conta: config, util, dati, griglia, prenotazione, bacheca, partite, soci, avvio. */
+   L'ordine conta: config, util, dati, griglia, prenotazione, bacheca, soci, avvio. */
 
 /* ================= Firebase (progetto dedicato b2p-prenota) ================= */
 const FIREBASE = {
