@@ -30,7 +30,6 @@ const SALA = {
   aperturaMattino: "21:00",     /* il mattino si prenota dalle 21 della sera prima */
   aperturaPomeriggio: "09:00",  /* pomeriggio e sera si prenotano dalle 9 del giorno stesso */
   scadenzaOre: 3,               /* "Cerco avversario" scade 3 ore prima dell'inizio */
-  giorniNuovo: 60,              /* badge "nuovo socio" per 60 giorni dall'approvazione */
   conservaMesi: 24              /* proposta per «Togli i nomi»: prenotazioni con i nomi conservate 24 mesi (vedi informativa) */
 };
 const LIVELLI = ["principiante", "intermedio", "esperto"];

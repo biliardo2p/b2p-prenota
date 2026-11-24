@@ -49,7 +49,7 @@ async function carica(){
   try{
     const filtro = `&orderBy=${encodeURIComponent('"$key"')}&startAt=${encodeURIComponent('"' + p.da + '"')}&endAt=${encodeURIComponent('"' + p.a + '"')}`;
     const dati = (await dbGet("prenotazioni", filtro)) || {};
-    ST.righe = Object.entries(dati).flatMap(([data, ps]) => Object.entries(ps || {}).map(([id, x]) => ({id, data, ...x})))
+    ST.righe = Object.entries(dati).flatMap(([data, ps]) => Object.entries(ps || {}).map(([id, x]) => nomiUniformi({id, data, ...x})))
       .sort((x, y) => (x.data + hhmm(x.min)).localeCompare(y.data + hhmm(y.min)) || x.tavolo - y.tavolo);
     disegna();
   }catch(err){ toast(msgErrore(err)); }

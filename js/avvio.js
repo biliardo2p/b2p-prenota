@@ -133,7 +133,7 @@ function ascoltaTutto(){
     if(!io || io.stato !== "attivo"){ esci(); return; }
     S.io = io; disegnaProfilo(); disegnaTutto();
   }, 30000);
-  ascoltaORileggi("pren", "prenotazioni", ULTIMI_DUE, v => { v = v || {}; S.pren = {[S.oggi]: v[S.oggi] || {}, [S.domani]: v[S.domani] || {}}; disegnaTutto(); });
+  ascoltaORileggi("pren", "prenotazioni", ULTIMI_DUE, v => { v = v || {}; S.pren = {[S.oggi]: giornataUniforme(v[S.oggi]), [S.domani]: giornataUniforme(v[S.domani])}; disegnaTutto(); });
 }
 
 /* Una scheda non in primo piano chiude i suoi ascolti: il browser permette poche connessioni

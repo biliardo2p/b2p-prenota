@@ -5,6 +5,9 @@ const $$ = s => [...document.querySelectorAll(s)];
 /* nomi di persona uniformi: iniziali maiuscole, resto minuscolo (anche dopo apostrofo e trattino: D'Amico, Rossi-Bianchi) */
 const nomeProprio = t => String(t ?? "").trim().replace(/\s+/g, " ").toLocaleLowerCase("it")
   .replace(/(^|[\s'’\-.])(\p{L})/gu, (m, prima, lettera) => prima + lettera.toLocaleUpperCase("it"));
+/* nomi nelle prenotazioni già salvate: mostrati comunque uniformi (le scritte vecchie potevano essere in maiuscolo) */
+const nomiUniformi = p => { if(p && typeof p === "object"){ if(p.titolareNome) p.titolareNome = nomeProprio(p.titolareNome); if(p.avversarioNome) p.avversarioNome = nomeProprio(p.avversarioNome); } return p; };
+const giornataUniforme = g => { Object.values(g || {}).forEach(nomiUniformi); return g || {}; };
 const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 /* ================= stato dell'app (condiviso dagli altri file) ================= */

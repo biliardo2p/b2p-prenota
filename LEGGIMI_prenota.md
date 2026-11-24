@@ -81,6 +81,8 @@ stesso browser), la scheda passa a rileggere le prenotazioni ogni 15 secondi (`a
   basta disattivare il provider Anonimo nella console.
 - "Cerco avversario": max una richiesta aperta per socio; **scade 3 ore prima** dell'inizio e il biliardo si libera.
   Senza server, la richiesta scaduta la libera il primo socio che ha l'app aperta (le regole lo permettono solo dopo la scadenza).
+- Badge "nuovo socio": solo l'admin lo assegna, con la data `nuovoFinoAl` nella scheda del socio (l'approvazione non lo
+  imposta più).
 - I padrini vedono un avviso quando un nuovo socio cerca un avversario.
 - Niente partite programmate per i giorni successivi (tolte il 24/11/2026 per semplicità): si usa solo «Cerco un avversario».
 - Le regole del database controllano: socio abilitato oppure ospite, aperture (21/9), orario (fino a 16 ore dopo l'inizio), durata e fine,
@@ -131,6 +133,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-24 (8)** — Nomi nelle prenotazioni già salvate mostrati uniformi (`nomiUniformi`, anche nelle statistiche).
+  Badge "nuovo socio" solo su decisione dell'admin (tolto `SALA.giorniNuovo`). Regole invariate.
 - **2026-11-24 (7)** — Nomi di persona uniformati con le iniziali maiuscole (`nomeProprio` in `js/util.js`): registrazione,
   nomi dell'ospite e avversari scritti a mano. I nomi dei soci già registrati si sistemano da soli quando un admin apre
   la scheda Admin. Regole invariate.

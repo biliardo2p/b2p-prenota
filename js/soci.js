@@ -60,7 +60,7 @@ function disegnaSoci(){
       <div class="meta">${[mail(s.id), esc(s.livello || "")].filter(Boolean).join(" · ")}</div>
       <label class="spunta"><input type="checkbox" data-campo="padrino" ${s.padrino ? "checked" : ""}> Padrino dei nuovi soci</label>
       <label class="spunta"><input type="checkbox" data-campo="admin" ${s.ruolo === "admin" ? "checked" : ""} ${s.id === S.uid ? "disabled" : ""}> Amministratore</label>
-      <label class="in-riga">Badge «nuovo socio» fino al <input type="date" data-campo="nuovoFinoAl" value="${esc(s.nuovoFinoAl || "")}"></label>
+      <label class="in-riga">Badge «nuovo socio» fino al <input type="date" data-campo="nuovoFinoAl" value="${esc(s.nuovoFinoAl || "")}"> <span class="meta">(vuoto: nessun badge)</span></label>
       ${s.id === S.uid ? "" : s.stato === "sospeso"
         ? `<button class="btn" data-az="riattiva">Riattiva</button>`
         : `<button class="btn pericolo" data-az="sospendi">Sospendi</button>`}
@@ -75,7 +75,8 @@ $("#tab-soci").addEventListener("click", async e => {
   if(!az) return;
   const id = e.target.closest("[data-id]").dataset.id, k = "soci/" + id + "/";
   try{
-    if(az === "approva") await dbWrite({[k + "stato"]: "attivo", [k + "nuovoFinoAl"]: piuGiorni(S.oggi, SALA.giorniNuovo)});
+    /* il badge «nuovo socio» non si mette da solo: lo decide l'admin con la data nella scheda del socio */
+    if(az === "approva") await dbWrite({[k + "stato"]: "attivo"});
     if(az === "riattiva") await dbWrite({[k + "stato"]: "attivo"});
     if(az === "cancella") return cancellaSocio(id);
     if(az === "sospendi" && await chiedi(`Sospendere ${nomeDi(id)}? Non potrà più prenotare.`, "Sì, sospendi", "No"))

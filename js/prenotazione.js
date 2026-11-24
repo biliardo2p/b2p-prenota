@@ -224,7 +224,7 @@ async function caricaMie(){
   try{ l = JSON.parse(localStorage.getItem(MKEY) || "[]").filter(x => x.data >= S.oggi); }catch(e){}
   const mie = {};
   await Promise.all(l.map(async x => {
-    try{ const p = await dbGet(percorso(x.data, x.id)); if(p && ATTIVE.includes(p.stato)) mie[x.id] = p; }catch(e){}
+    try{ const p = await dbGet(percorso(x.data, x.id)); if(p && ATTIVE.includes(p.stato)) mie[x.id] = nomiUniformi(p); }catch(e){}
   }));
   S.mie = mie;
   disegnaTutto();
