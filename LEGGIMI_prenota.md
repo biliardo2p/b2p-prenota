@@ -84,7 +84,11 @@ stesso browser), la scheda passa a rileggere le prenotazioni ogni 15 secondi (`a
 - "Cerco avversario": max una richiesta aperta per socio; **scade 3 ore prima** dell'inizio e il biliardo si libera.
   Senza server, la richiesta scaduta la libera il primo socio che ha l'app aperta (le regole lo permettono solo dopo la scadenza).
 - I padrini vedono un avviso quando un nuovo socio cerca un avversario.
-- Partite programmate: per i giorni successivi, non bloccano biliardi; il giorno stesso, dalle 9, "Prenota il biliardo".
+- Partite programmate: per i giorni successivi, non bloccano biliardi; quando l'orario diventa prenotabile, "Prenota il biliardo".
+  Sono oggetti separati dalle prenotazioni. Quando l'orario è prenotabile una richiesta "aperta" (a chiunque) sparisce per
+  gli altri; il proponente vede "Prenota e cerca avversario" (prenotazione con «Cerco un avversario», la partita passa ad
+  `annullata`). Se uno dei giocatori ha già una prenotazione sovrapposta (oggi/domani) compare un avviso al posto del pulsante.
+  Le partite di orari già iniziati non si mostrano.
 - Le regole del database controllano: socio abilitato oppure ospite, aperture (21/9), orario (fino a 16 ore dopo l'inizio), durata e fine,
   scadenza, nomi coerenti con la scheda socio, chi può fare cosa (titolare, altro socio, ospite, amministratore).
 - **Statistiche** (`statistiche.html`, dal Profilo e dalla scheda Admin; per tutti i soci abilitati, non per gli ospiti):
@@ -133,6 +137,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-24 (4)** — Partite programmate: richieste aperte nascoste agli altri quando l'orario è prenotabile,
+  "Prenota e cerca avversario" per il proponente, avviso di prenotazione già presente, orari passati nascosti. Regole invariate.
 - **2026-11-24 (3)** — Statistiche per tutti i soci: vista «Circolo» senza nomi (tolti «Soci più attivi» e «Cerco
   avversario» complessivo) e vista personale «Le mie». **Regole cambiate** (`prenotazioni/.read` = socio abilitato).
 - **2026-11-24 (2)** — Scheda Admin: «Togli i nomi» dalle prenotazioni vecchie e «Cancella» socio. **Regole cambiate**
