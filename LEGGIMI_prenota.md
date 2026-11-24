@@ -21,7 +21,7 @@ Ha in comune con loro solo lo stack (sito statico, JavaScript classico, Firebase
 ```
 index.html               pagina unica dell'app
 manuale.html             istruzioni per i soci
-statistiche.html         statistiche sull'uso dei biliardi (solo admin)
+statistiche.html         statistiche: «Circolo» (senza nomi) e «Le mie» (#mie), per tutti i soci abilitati
 privacy.html             informativa privacy (artt. 13-14 GDPR); le parti evidenziate «da-completare» le compila il direttivo
 manifest.webmanifest     app installabile "Prenota 2P" (scope /b2p-prenota/)
 css/prenota.css          colori e caratteri (come il Tabellone Live)
@@ -87,11 +87,15 @@ stesso browser), la scheda passa a rileggere le prenotazioni ogni 15 secondi (`a
 - Partite programmate: per i giorni successivi, non bloccano biliardi; il giorno stesso, dalle 9, "Prenota il biliardo".
 - Le regole del database controllano: socio abilitato oppure ospite, aperture (21/9), orario (fino a 16 ore dopo l'inizio), durata e fine,
   scadenza, nomi coerenti con la scheda socio, chi può fare cosa (titolare, altro socio, ospite, amministratore).
-- **Statistiche** (`statistiche.html`, dalla scheda Admin): settimana, mese o anno con frecce per scorrere i periodi;
-  ore prenotate e occupazione (biliardi × 16 ore di apertura × giorni fino a domani), prenotazioni, giocatori diversi,
-  annullate; andamento per giorno o per mese; ore per biliardo; tipo di partita; mappa giorni × ore; esito di
-  "Cerco avversario"; soci più attivi; esportazione CSV per Excel (separatore `;`). Gli admin leggono il nodo
-  `prenotazioni` per intervallo di date (`orderBy="$key"`).
+- **Statistiche** (`statistiche.html`, dal Profilo e dalla scheda Admin; per tutti i soci abilitati, non per gli ospiti):
+  settimana, mese o anno con frecce per scorrere i periodi; due viste:
+  - **Circolo** — nessun nome: ore prenotate e occupazione (biliardi × 16 ore di apertura × giorni fino a domani),
+    prenotazioni, giocatori diversi (solo il numero), annullate; andamento; ore per biliardo; tipo di partita;
+    mappa giorni × ore; CSV senza nomi.
+  - **Le mie** (`statistiche.html#mie`) — solo le partite del socio collegato (titolare o avversario): ore, partite,
+    biliardi, quando gioca, avversari (soci per scheda, non soci per nome), sue richieste «Cerco avversario»; CSV con i nomi.
+  I soci leggono il nodo `prenotazioni` per intervallo di date (`orderBy="$key"`): regola `.read: A` (prima potevano
+  già leggere una giornata alla volta).
 - **Conservazione dei dati** (scheda Admin, in fondo):
   - «Togli i nomi dalle prenotazioni vecchie» (12/24/36 mesi; proposta `SALA.conservaMesi` = 24): titolare e avversario
     diventano `anonimo` / `Anonimo`, la nota sparisce; biliardo, orari, stato e tipo restano per le statistiche (che
@@ -129,6 +133,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-24 (3)** — Statistiche per tutti i soci: vista «Circolo» senza nomi (tolti «Soci più attivi» e «Cerco
+  avversario» complessivo) e vista personale «Le mie». **Regole cambiate** (`prenotazioni/.read` = socio abilitato).
 - **2026-11-24 (2)** — Scheda Admin: «Togli i nomi» dalle prenotazioni vecchie e «Cancella» socio. **Regole cambiate**
   (anonimizzazione da parte dell'admin, cancellazione di `privati` e `partite`).
 - **2026-11-24** — Informativa privacy (`privacy.html`, linkata dall'accesso, dall'ospite e dal Profilo). Prenotazione

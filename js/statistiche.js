@@ -1,9 +1,12 @@
-/* Prenota 2P · statistiche.js — Statistiche sull'uso dei biliardi (solo amministratori).
+/* Prenota 2P · statistiche.js — Statistiche sull'uso dei biliardi, per tutti i soci abilitati.
+   Due viste: «Circolo» (solo numeri complessivi, nessun nome) e «Le mie» (le partite del socio collegato, con i suoi avversari).
    Legge le prenotazioni del periodo con una sola richiesta (ordinate per data) e calcola tutto nel browser. */
 
 const GIORNI_SETT = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
 const MESI = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
-const ST = {tipo: "mese", rif: null, righe: [], per: null};
+const ST = {tipo: "mese", vista: location.hash === "#mie" ? "mie" : "circolo", rif: null, righe: [], per: null};
+const IO = () => session && session.uid;
+const mia = x => x.titolare === IO() || x.avversario === IO();
 const ORE_APERTURA = () => (minuti(SALA.chiusura) - minuti(SALA.primoInizio)) / 60;
 const fmt1 = n => n.toLocaleString("it-IT", {maximumFractionDigits: 1});
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
@@ -42,7 +45,7 @@ async function carica(){
   const p = periodo();
   ST.per = p;
   $("#periodo-etichetta").textContent = p.etichetta;
-  $("#periodo-nome").textContent = p.etichetta;
+  $("#periodo-nome").textContent = (ST.vista === "mie" ? "Le mie · " : "") + p.etichetta;
   $("#carico").hidden = false;
   try{
     const filtro = `&orderBy=${encodeURIComponent('"$key"')}&startAt=${encodeURIComponent('"' + p.da + '"')}&endAt=${encodeURIComponent('"' + p.a + '"')}`;
@@ -85,21 +88,34 @@ function barreOrizzontali(voci){
 }
 
 function disegna(){
-  const p = ST.per, righe = ST.righe, val = righe.filter(valida);
+  const p = ST.per, mie = ST.vista === "mie", righe = mie ? ST.righe.filter(mia) : ST.righe, val = righe.filter(valida);
   const ore = val.reduce((s, x) => s + durataDi(x) / 60, 0);
   const oreDisp = SALA.tavoli * ORE_APERTURA() * p.giorni.length;
   const annullate = righe.filter(x => x.stato === "annullata").length;
-  const richieste = righe.filter(x => x.livello && (x.stato === "scaduta" || x.stato === "aperta" || x.avversario));
-  const trovate = richieste.filter(x => x.avversario && x.stato === "confermata").length;
   const giocatori = new Set(val.flatMap(x => [x.titolare, x.avversario]).filter(u => u && u !== "anonimo"));
 
-  $("#tiles").innerHTML = [
+  /* avversari della persona collegata: socio (per scheda) o nome scritto a mano */
+  const avversari = {};
+  if(mie) val.forEach(x => {
+    const altro = x.titolare === IO() ? (x.avversario ? {k: x.avversario, nome: x.avversarioNome} : x.avversarioNome ? {k: "n:" + x.avversarioNome.toLowerCase(), nome: x.avversarioNome} : null)
+                                      : {k: x.titolare, nome: x.titolareNome};
+    if(!altro || altro.k === "anonimo") return;
+    const a = avversari[altro.k] = avversari[altro.k] || {nome: altro.nome, ore: 0, n: 0};
+    a.ore += durataDi(x) / 60; a.n++;
+  });
+  $("#tiles").innerHTML = (mie ? [
+    ["Ore giocate", fmt1(ore), "nel periodo"],
+    ["Partite", val.length, val.length ? `durata media ${testoDurata(Math.round(ore * 60 / val.length / 30) * 30) || "—"}` : "—"],
+    ["Avversari diversi", Object.keys(avversari).length, "soci e non soci"],
+    ["Da solo", val.filter(x => tipoDi(x) === "Da solo").length, "allenamenti"],
+    ["Annullate", righe.filter(x => x.stato === "annullata").length, "non contate nelle ore"]
+  ] : [
     ["Ore prenotate", fmt1(ore), `su ${fmt1(oreDisp)} disponibili`],
     ["Occupazione", pct(ore, oreDisp) + "%", "dei biliardi nell'orario di apertura"],
     ["Prenotazioni", val.length, val.length ? `durata media ${testoDurata(Math.round(ore * 60 / val.length / 30) * 30) || "—"}` : "—"],
     ["Giocatori diversi", giocatori.size, "soci e utenze ospite"],
     ["Annullate", annullate, "non contate nelle ore"]
-  ].map(([t, v, s]) => `<div class="tile"><div class="tile-titolo">${t}</div><div class="tile-valore">${v}</div><div class="meta">${s}</div></div>`).join("");
+  ]).map(([t, v, s]) => `<div class="tile"><div class="tile-titolo">${t}</div><div class="tile-valore">${v}</div><div class="meta">${s}</div></div>`).join("");
 
   /* andamento: per giorno (settimana, mese) o per mese (anno) */
   let voci;
@@ -117,16 +133,20 @@ function disegna(){
       const v = val.filter(x => x.data === d).reduce((s, x) => s + durataDi(x) / 60, 0);
       const g = +d.slice(8);
       voci.push({valore: v, etichetta: ST.tipo === "settimana" ? GIORNI_SETT[giornoSett(d)] + " " + g : (g === 1 || g % 5 === 0 ? String(g) : ""),
-        tip: `${dataLunga(d)}: ${fmt1(v)} ore (${pct(v, SALA.tavoli * ORE_APERTURA())}% di occupazione)`});
+        tip: mie ? `${dataLunga(d)}: ${fmt1(v)} ore` : `${dataLunga(d)}: ${fmt1(v)} ore (${pct(v, SALA.tavoli * ORE_APERTURA())}% di occupazione)`});
     }
     $("#andamento-unita").textContent = "per giorno";
   }
+  $("#titolo-andamento").textContent = mie ? "Ore giocate" : "Ore prenotate";
   $("#andamento").innerHTML = barreVerticali(voci, "ore");
 
   /* per biliardo */
   const oreTav = Array.from({length: SALA.tavoli}, (_, i) => val.filter(x => x.tavolo === i + 1).reduce((s, x) => s + durataDi(x) / 60, 0));
   const dispTav = ORE_APERTURA() * p.giorni.length;
-  $("#per-biliardo").innerHTML = barreOrizzontali(oreTav.map((v, i) => ({
+  $("#titolo-biliardo").textContent = mie ? "Su quali biliardi" : "Per biliardo";
+  $("#per-biliardo").innerHTML = barreOrizzontali(oreTav.map((v, i) => mie ? ({
+    nome: "Biliardo " + (i + 1), valore: v, testo: `${fmt1(v)} h · ${pct(v, ore)}%`,
+    tip: `Biliardo ${i + 1}: ${fmt1(v)} ore, ${pct(v, ore)}% delle tue ore`}) : ({
     nome: "Biliardo " + (i + 1), valore: v, testo: `${fmt1(v)} h · ${pct(v, dispTav)}%`,
     tip: `Biliardo ${i + 1}: ${fmt1(v)} ore prenotate, ${pct(v, dispTav)}% di occupazione`})));
 
@@ -150,49 +170,56 @@ function disegna(){
       if(h >= 0 && h < ore24.length) conta[gs][h] += SALA.passo / 60;
     }
   });
-  const qMax = Math.max(0.01, ...conta.flatMap((riga, gs) => riga.map(v => SALA.tavoli * giorniPer[gs] ? v / (SALA.tavoli * giorniPer[gs]) : 0)));
+  /* circolo: occupazione media (ore / ore disponibili); le mie: ore giocate in quella fascia */
+  const quota = (v, gs) => mie ? v : (SALA.tavoli * giorniPer[gs] ? v / (SALA.tavoli * giorniPer[gs]) : 0);
+  const qMax = Math.max(mie ? 0.5 : 0.01, ...conta.flatMap((riga, gs) => riga.map(v => quota(v, gs))));
+  $("#titolo-mappa").textContent = mie ? "Quando gioco" : "Quando si gioca";
+  $("#nota-mappa").textContent = mie ? "Le tue ore per giorno della settimana e ora: più il colore è acceso, più ci giochi. Passa sopra una casella per il valore."
+    : "Occupazione media dei biliardi per giorno della settimana e ora: più il colore è acceso, più i biliardi sono occupati. Passa sopra una casella per il valore.";
   let h = `<table class="mappa"><thead><tr><th></th>${ore24.map(o => `<th>${o}</th>`).join("")}</tr></thead><tbody>`;
   conta.forEach((riga, gs) => {
     h += `<tr><th>${GIORNI_SETT[gs]}</th>` + riga.map((v, i) => {
-      const disp = SALA.tavoli * giorniPer[gs], q = disp ? v / disp : 0;
-      const tip = `${GIORNI_SETT[gs]} ${ore24[i]}–${ore24[i] + 1}: ${Math.round(q * 100)}% di occupazione`;
+      const q = quota(v, gs);
+      const tip = `${GIORNI_SETT[gs]} ${ore24[i]}–${ore24[i] + 1}: ` + (mie ? `${fmt1(v)} ore` : `${Math.round(q * 100)}% di occupazione`);
       return `<td data-tip="${tip}" style="--q:${(q / qMax).toFixed(3)}"></td>`;
     }).join("") + "</tr>";
   });
   $("#mappa").innerHTML = h + `</tbody></table>
-    <div class="scala meta"><span>0%</span><span class="scala-barra"></span><span>${Math.round(qMax * 100)}% (il massimo del periodo)</span></div>`;
+    <div class="scala meta"><span>${mie ? "0" : "0%"}</span><span class="scala-barra"></span><span>${mie ? fmt1(qMax) + " ore" : Math.round(qMax * 100) + "%"} (il massimo del periodo)</span></div>`;
 
-  /* cerco avversario */
-  const scadute = richieste.filter(x => x.stato === "scaduta").length;
-  $("#cerco").innerHTML = richieste.length ? `
-    <div class="tile piatto"><div class="tile-valore">${trovate} su ${richieste.length}</div>
-      <div class="meta">richieste che hanno trovato un avversario (${pct(trovate, richieste.length)}%)</div></div>
-    <p class="meta">Scadute senza avversario: ${scadute}. Altre richieste ancora aperte o diventate «gioco da solo»: ${richieste.length - trovate - scadute}.</p>`
+  $("#nota-fondo").textContent = mie
+    ? "Contano le tue partite attive o confermate, da titolare o da avversario; le annullate sono indicate a parte. Questa vista la vedi solo tu."
+    : "Si contano le prenotazioni attive o confermate (incluse quelle da ospite da confermare); le annullate sono indicate a parte. Le ore disponibili sono: biliardi × ore di apertura (8–24) × giorni del periodo fino a domani.";
+  $("#solo-mie").hidden = !mie;
+  if(!mie) return;
+
+  /* le mie richieste «Cerco avversario» */
+  const mieRich = righe.filter(x => x.titolare === IO() && x.livello && (x.stato === "scaduta" || x.stato === "aperta" || x.avversario));
+  const mieTrov = mieRich.filter(x => x.avversario && x.stato === "confermata").length, mieScad = mieRich.filter(x => x.stato === "scaduta").length;
+  $("#cerco").innerHTML = mieRich.length ? `
+    <div class="tile piatto"><div class="tile-valore">${mieTrov} su ${mieRich.length}</div>
+      <div class="meta">richieste che hanno trovato un avversario (${pct(mieTrov, mieRich.length)}%)</div></div>
+    <p class="meta">Scadute senza avversario: ${mieScad}. Ancora aperte o diventate «gioco da solo»: ${mieRich.length - mieTrov - mieScad}.</p>`
     : `<p class="meta">Nessuna richiesta «Cerco avversario» nel periodo.</p>`;
 
-  /* soci più attivi (ore giocate da titolare o avversario) */
-  const perSocio = {};
-  val.forEach(x => [[x.titolare, x.titolareNome, !x.daOspite], [x.avversario, x.avversarioNome, true]].forEach(([uid, nome, ok]) => {
-    if(!uid || !ok || uid === "anonimo") return;
-    const s = perSocio[uid] = perSocio[uid] || {nome, ore: 0, n: 0};
-    s.ore += durataDi(x) / 60; s.n++;
-  }));
-  const top = Object.values(perSocio).sort((a, b) => b.ore - a.ore).slice(0, 10);
-  $("#top").innerHTML = top.length ? barreOrizzontali(top.map(s => ({
-    nome: s.nome, valore: s.ore, testo: `${fmt1(s.ore)} h · ${s.n}`, tip: `${s.nome}: ${fmt1(s.ore)} ore in ${s.n} partite`})))
-    : `<p class="meta">Nessun socio nel periodo.</p>`;
+  /* i miei avversari */
+  const top = Object.values(avversari).sort((a, b) => b.n - a.n || b.ore - a.ore).slice(0, 15);
+  $("#top").innerHTML = top.length ? barreOrizzontali(top.map(a => ({
+    nome: a.nome, valore: a.n, testo: `${a.n} · ${fmt1(a.ore)} h`, tip: `${a.nome}: ${a.n} partite, ${fmt1(a.ore)} ore`})))
+    : `<p class="meta">Nessun avversario nel periodo.</p>`;
 }
 
 /* ================= CSV per Excel ================= */
 function scaricaCSV(){
   const c = v => { const s = String(v ?? ""); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-  const intest = ["data", "giorno", "biliardo", "inizio", "fine", "durata_min", "stato", "tipo", "titolare", "avversario"];
-  const righe = ST.righe.map(x => [x.data, GIORNI_SETT[giornoSett(x.data)], x.tavolo, hhmm(x.min), hhmm(x.min + durataDi(x)),
-    durataDi(x), x.stato, tipoDi(x), x.titolareNome, x.avversarioNome || ""].map(c).join(";"));
+  const mie = ST.vista === "mie";
+  const intest = ["data", "giorno", "biliardo", "inizio", "fine", "durata_min", "stato", "tipo", ...(mie ? ["titolare", "avversario"] : [])];
+  const righe = (mie ? ST.righe.filter(mia) : ST.righe).map(x => [x.data, GIORNI_SETT[giornoSett(x.data)], x.tavolo, hhmm(x.min), hhmm(x.min + durataDi(x)),
+    durataDi(x), x.stato, tipoDi(x), ...(mie ? [x.titolareNome, x.avversarioNome || ""] : [])].map(c).join(";"));
   const blob = new Blob([String.fromCharCode(0xFEFF) + [intest.join(";"), ...righe].join("\r\n")], {type: "text/csv;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `prenotazioni_${ST.per.da}_${ST.per.a}.csv`;
+  a.download = `${mie ? "mie_partite" : "prenotazioni"}_${ST.per.da}_${ST.per.a}.csv`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
@@ -213,11 +240,18 @@ document.addEventListener("click", mostraTip);
 addEventListener("scroll", () => tipEl.hidden = true, {passive: true});
 
 /* ================= avvio ================= */
-$$(".segmenti button").forEach(b => b.addEventListener("click", () => {
-  $$(".segmenti button").forEach(x => x.classList.toggle("attivo", x === b));
+$$("#periodi button").forEach(b => b.addEventListener("click", () => {
+  $$("#periodi button").forEach(x => x.classList.toggle("attivo", x === b));
   ST.tipo = b.dataset.tipo;
   carica();
 }));
+function scegliVista(v){
+  ST.vista = v;
+  $$("#vista button").forEach(x => x.classList.toggle("attivo", x.dataset.vista === v));
+  history.replaceState(null, "", v === "mie" ? "#mie" : location.pathname + location.search);
+  $(".titolo").textContent = v === "mie" ? "Le mie statistiche" : "Statistiche biliardi";
+}
+$$("#vista button").forEach(b => b.addEventListener("click", () => { scegliVista(b.dataset.vista); if(ST.per) disegna(); }));
 $("#prec").addEventListener("click", () => sposta(-1));
 $("#succ").addEventListener("click", () => sposta(1));
 $("#csv").addEventListener("click", scaricaCSV);
@@ -227,7 +261,8 @@ $("#csv").addEventListener("click", scaricaCSV);
   S.oggi = ST.rif;
   let io = null;
   try{ if(session && !session.ospite) io = await dbGet("soci/" + session.uid); }catch(e){}
-  if(!io || io.ruolo !== "admin" || io.stato !== "attivo"){ $("#negato").hidden = false; return; }
+  if(!io || io.stato !== "attivo"){ $("#negato").hidden = false; return; }
+  scegliVista(ST.vista);
   $("#stat").hidden = false;
   carica();
 })();
