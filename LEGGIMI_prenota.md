@@ -133,6 +133,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-25 (3)** — Icona per Android (maskable) ingrandita: il logo occupa quasi tutto il cerchio come nelle altre app
+  del circolo; icone richiamate con `?v=3`.
 - **2026-11-25 (2)** — Corretta la finestra di prenotazione sul telefono: lo stile delle statistiche (classe `.colonna`)
   la deformava; ora `css/statistiche.css` vale solo dentro `#tab-stat`. Finestre e intestazione più compatte sui telefoni.
 - **2026-11-25** — Nome in alto a destra con tendina: «Esci» per i soci, «Login / Registrati» per gli ospiti (esce
