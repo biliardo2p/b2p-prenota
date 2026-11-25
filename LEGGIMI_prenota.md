@@ -133,6 +133,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-25** — Nome in alto a destra con tendina: «Esci» per i soci, «Login / Registrati» per gli ospiti (esce
+  dalla sessione anonima e torna all'accesso; le prenotazioni da ospite restano ricordate sul dispositivo). Regole invariate.
 - **2026-11-24 (8)** — Nomi nelle prenotazioni già salvate mostrati uniformi (`nomiUniformi`, anche nelle statistiche).
   Badge "nuovo socio" solo su decisione dell'admin (tolto `SALA.giorniNuovo`). Regole invariate.
 - **2026-11-24 (7)** — Nomi di persona uniformati con le iniziali maiuscole (`nomeProprio` in `js/util.js`): registrazione,

@@ -15,8 +15,8 @@
 <meta name="apple-mobile-web-app-title" content="Prenota 2P">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@600;700&display=swap">
-<link rel="stylesheet" href="css/prenota.css?v=2026112408">
-<link rel="stylesheet" href="css/statistiche.css?v=2026112408">
+<link rel="stylesheet" href="css/prenota.css?v=2026112501">
+<link rel="stylesheet" href="css/statistiche.css?v=2026112501">
 </head>
 <body>
 <header class="testata">
@@ -25,7 +25,14 @@
     <div class="titolo">Prenota biliardi</div>
     <div id="oggi" class="sotto"></div>
   </div>
-  <div id="utente" class="sotto destra"></div>
+  <!-- nome dell'utente (o «Ospite») con la tendina: Esci per i soci, Login / Registrati per gli ospiti -->
+  <div class="menu-utente destra">
+    <button id="utente" class="sotto" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="tendina-utente" hidden></button>
+    <div id="tendina-utente" class="tendina" role="menu" hidden>
+      <button type="button" role="menuitem" data-voce="accedi">Login / Registrati</button>
+      <button type="button" role="menuitem" data-voce="esci">Esci</button>
+    </div>
+  </div>
 </header>
 
 <!-- ============ accesso / registrazione ============ -->
@@ -280,14 +287,14 @@
 <div id="suggerimento" role="tooltip" hidden></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/config.js?v=2026112408"></script>
-<script src="js/util.js?v=2026112408"></script>
-<script src="js/dati.js?v=2026112408"></script>
-<script src="js/griglia.js?v=2026112408"></script>
-<script src="js/prenotazione.js?v=2026112408"></script>
-<script src="js/bacheca.js?v=2026112408"></script>
-<script src="js/soci.js?v=2026112408"></script>
-<script src="js/statistiche.js?v=2026112408"></script>
-<script src="js/avvio.js?v=2026112408"></script>
+<script src="js/config.js?v=2026112501"></script>
+<script src="js/util.js?v=2026112501"></script>
+<script src="js/dati.js?v=2026112501"></script>
+<script src="js/griglia.js?v=2026112501"></script>
+<script src="js/prenotazione.js?v=2026112501"></script>
+<script src="js/bacheca.js?v=2026112501"></script>
+<script src="js/soci.js?v=2026112501"></script>
+<script src="js/statistiche.js?v=2026112501"></script>
+<script src="js/avvio.js?v=2026112501"></script>
 </body>
 </html>

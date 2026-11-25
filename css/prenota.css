@@ -139,3 +139,16 @@ body.con-barra #toast{bottom:240px}
 body.ospite [data-solo-soci]{display:none!important}
 .privacy a,.pannello .meta a{color:var(--home)}
 @media (max-width:480px){nav{gap:0}nav button{font-size:15px;padding:12px 4px}}
+
+/* nome in alto a destra con la tendina */
+.menu-utente{position:relative}
+#utente{background:none;border:1px solid transparent;border-radius:8px;color:var(--mute);font:inherit;font-weight:600;font-size:16px;
+  padding:6px 8px;cursor:pointer;text-transform:none}
+#utente::after{content:" ▾";font-size:.8em}
+#utente:hover,#utente[aria-expanded="true"]{border-color:var(--line);color:var(--ink,#fff)}
+.tendina{position:absolute;right:0;top:calc(100% + 4px);z-index:20;min-width:170px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.45);padding:4px}
+.tendina button{display:block;width:100%;text-align:left;white-space:nowrap;background:none;border:0;border-radius:8px;color:var(--ink);font:inherit;
+  font-size:17px;font-weight:600;padding:10px 12px;cursor:pointer}
+.tendina button:hover,.tendina button:focus-visible{background:var(--libera-hover,rgba(255,255,255,.08))}
+.tendina button[hidden],.tendina[hidden]{display:none}

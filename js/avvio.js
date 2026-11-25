@@ -71,11 +71,33 @@ function disegnaTutto(){
   if(!S.ospite) disegnaSoci();
 }
 
+/* ================= nome in alto a destra con la tendina ================= */
+function mostraUtente(nome){
+  const b = $("#utente");
+  b.textContent = nome; b.hidden = !nome;
+  chiudiTendina();
+}
+function chiudiTendina(){ $("#tendina-utente").hidden = true; $("#utente").setAttribute("aria-expanded", "false"); }
+$("#utente").addEventListener("click", e => {
+  e.stopPropagation();
+  const t = $("#tendina-utente"), apri = t.hidden;
+  /* ospite: «Login / Registrati»; socio: «Esci» */
+  t.querySelector("[data-voce=accedi]").hidden = !S.ospite;
+  t.querySelector("[data-voce=esci]").hidden = S.ospite;
+  t.hidden = !apri; $("#utente").setAttribute("aria-expanded", String(apri));
+  if(apri) t.querySelector("button:not([hidden])").focus();
+});
+/* l'ospite esce dalla sessione anonima e torna alla schermata di accesso, dove può entrare o registrarsi;
+   le sue prenotazioni restano ricordate sul dispositivo */
+$("#tendina-utente").addEventListener("click", e => { if(e.target.closest("[data-voce]")) esci(); });
+document.addEventListener("click", e => { if(!e.target.closest(".menu-utente")) chiudiTendina(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape") chiudiTendina(); });
+
 /* ================= avvio ================= */
 async function avvia(){
   chiudiAscolti();
   S.sel = null;
-  $("#utente").textContent = "";
+  mostraUtente("");
   if(!session){ mostra("accesso"); return; }
   if(session.ospite){ avviaOspite(); return; }
   let io;
@@ -89,7 +111,7 @@ async function avvia(){
   if(io.stato !== "attivo"){ toast("Utenza sospesa: contatta il direttivo"); session = null; salvaSessione(); mostra("accesso"); return; }
 
   S.uid = session.uid; S.io = io; S.ospite = false;
-  $("#utente").textContent = io.nome;
+  mostraUtente(io.nome);
   document.body.classList.remove("ospite");
   mostra("app");
   disegnaProfilo();
@@ -99,7 +121,7 @@ async function avvia(){
 }
 function avviaOspite(){
   S.uid = session.uid; S.io = {nome: "Ospite", ruolo: "ospite", stato: "attivo"}; S.ospite = true;
-  $("#utente").textContent = "Ospite";
+  mostraUtente("Ospite");
   document.body.classList.add("ospite");
   mostra("app");
   disegnaProfilo();
