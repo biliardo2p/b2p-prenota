@@ -133,6 +133,8 @@ scritture), quindi non tocca mai il database vero. Le regole non si possono prov
 
 ## Storia delle versioni
 
+- **2026-11-25 (2)** — Corretta la finestra di prenotazione sul telefono: lo stile delle statistiche (classe `.colonna`)
+  la deformava; ora `css/statistiche.css` vale solo dentro `#tab-stat`. Finestre e intestazione più compatte sui telefoni.
 - **2026-11-25** — Nome in alto a destra con tendina: «Esci» per i soci, «Login / Registrati» per gli ospiti (esce
   dalla sessione anonima e torna all'accesso; le prenotazioni da ospite restano ricordate sul dispositivo). Regole invariate.
 - **2026-11-24 (8)** — Nomi nelle prenotazioni già salvate mostrati uniformi (`nomiUniformi`, anche nelle statistiche).
